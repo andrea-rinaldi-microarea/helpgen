@@ -27,7 +27,9 @@ module.exports =  {
                 render += gridLine(colSpan);
             }
         });
-        render += gridLine(colSpan);
+        if (!options.allLines) {
+            render += gridLine(colSpan);
+        }
         return render;
     },
 

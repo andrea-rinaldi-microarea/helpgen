@@ -27,13 +27,13 @@ module.exports = function createModuleHelp(module, workingPath, outputPath) {
 
 //-----------------------------------------------------------------------------
 function createHelpFile(outputPath, module) {
-    var content = `[H2 ${module.name}]${module.localize}\nHere the **${module.localize}** tables:\n\n`;
+    var content = `[H2 ${module.appName}-${module.name}]${module.localize}\nHere the **${module.localize}** tables:\n\n`;
 
     var gridContent = [["Table name", "Description"]];
     module.dbObjects.Tables.Table.forEach(table => {
         if (!metadata.defined(table.localize)) table.localize = "";
         gridContent.push(
-                            [`[LINK ${metadata.objectName(table.namespace)} ${metadata.objectName(table.namespace)}]`, 
+                            [`[LINK ${metadata.dashed(metadata.compact(table.namespace))} ${metadata.objectName(table.namespace)}]`, 
                             markdown.adjust(table.localize)]
                         );
     });
@@ -51,18 +51,18 @@ function createHelpFile(outputPath, module) {
 
 //-----------------------------------------------------------------------------
 function createTableDescription(table) {
-    var content = `[H3 ${metadata.objectName(table.namespace)}]${metadata.objectName(table.namespace)}\n`;
+    var content = `[H3 ${metadata.dashed(metadata.compact(table.namespace))}]${metadata.objectName(table.namespace)}\n`;
 
     content += "[H4] Base Info\n";
 
     var gridContent = [
         ["Phisical Name",           metadata.objectName(table.namespace)],
         ["Content",                 markdown.adjust(table.localize)],
-        ["Part of the document",    partOfDocument(table.Document)]
+        ["Part of the document",    partOfDocument(table.Document, metadata.appName(table.namespace))]
     ];
     if (metadata.defined(table.Reference) && table.Reference != '') {
         gridContent.push(
-            ["References",          `[LINK ${metadata.objectName(table.Reference)} ${table.namespace}]`]
+            ["References",          `[LINK ${metadata.dashed(metadata.compact(table.Reference))} ${table.namespace}]`]
         );
     }
     content += markdown.gridRender(gridContent, { allLines: true });
@@ -76,7 +76,7 @@ function createTableDescription(table) {
         gridContent = [["Name", "Type & Len", "M", "R/O", "D", "Description"]];
         table.Columns.Column.forEach(column => {
             gridContent.push([
-                hotlink(column), 
+                hotlink(column, metadata.appName(table.namespace)), 
                 columnType(column), 
                 markdown.asCheck(column.DocumentationInfo.mandatory), 
                 markdown.asCheck(column.DocumentationInfo.readonly), 
@@ -116,11 +116,21 @@ function mergeDBInfoData(dbObjects) {
 }
 
 //-----------------------------------------------------------------------------
-function partOfDocument(documentList) {
+function partOfDocument(documentList, appName) {
     if (!metadata.defined(documentList) || documentList == "") {
         return "N/A";
     }
-    return documentList.replace(/,/g,"[BR]");
+    var documents = documentList.split(",");
+    var output="";
+    documents.forEach(document => {
+        if (document.includes('/')) {
+            output += `${appName}.${document.split('/')[0]}.${document.split('/')[1]}[BR]`;
+        } else {
+            output += `${metadata.compact(document)}[BR]`;
+        }
+    });
+
+    return output;
 }
 
 //-----------------------------------------------------------------------------
@@ -149,12 +159,12 @@ function lookup(columnName, dbInfo) {
 }
 
 //-----------------------------------------------------------------------------
-function hotlink(column) {
+function hotlink(column, appName) {
     if (metadata.defined(column.Reference)) {
         if (column.Reference.includes('/')) {
-            return `[LINK ${column.Reference.split('/')[1]} « ${column.SchemaInfo.content}]`;
+            return `[LINK ${appName}-${column.Reference.split('/')[0]}-${column.Reference.split('/')[1]} ${column.SchemaInfo.content}]`;
         }
-        return `[LINK ${metadata.objectName(column.Reference)}   ${column.SchemaInfo.content}]`;
+        return `[LINK ${metadata.dashed(metadata.compact(column.Reference))} ${column.SchemaInfo.content}]`;
     }
     return column.SchemaInfo.content;
 }

@@ -5,16 +5,19 @@ const error = require('./error');
 const fs = require('fs');
 const _ = require('lodash');
 const markdown = require('./markdown');
+const fsStuff = require('./fs-stuff'); 
 
 module.exports = function createApplicationHelp(app, workingPath, outputPath) {
     process.chdir(path.join(workingPath, app.name));
     _.assignIn(app, metadata.parseXML('Application.config'));
     var moduleNames = metadata.scanFor('Module.config');
     app.modules = [];
-    fs.mkdirSync(path.join(outputPath, app.name));
+    var appOutputPath = path.join(outputPath, `Tables-${app.name}`);
+    fsStuff.rimraf(appOutputPath);
+    fs.mkdirSync(appOutputPath);
     moduleNames.forEach(moduleName => {
-        mod = { name: moduleName };
-        if (createModuleHelp(mod, path.join(workingPath, app.name), path.join(outputPath, app.name))) {
+        mod = { name: moduleName, appName: app.name };
+        if (createModuleHelp(mod, path.join(workingPath, app.name), appOutputPath)) {
             app.modules.push(mod);
         }
     });
@@ -23,21 +26,23 @@ module.exports = function createApplicationHelp(app, workingPath, outputPath) {
     }
     if (app.modules.length > 0) {
         console.log(`${app.name}:`);
-        createHelpFile(outputPath, app);
+        createHelpFile(appOutputPath, app);
         console.log(moduleNames);
         return true;
+    } else {
+        fsStuff.rimraf(appOutputPath);
     }
     return false;
 }
 
 
 //-----------------------------------------------------------------------------
-function createHelpFile(outputPath, app) {
+function createHelpFile(appOutputPath, app) {
     var content = `[H1]${app.localize}\nHere the **${app.localize}** modules:\n\n`;
 
     var gridContent = [["Module name / folder", "Description"]];
     app.modules.forEach(module => {
-        gridContent.push([`[LINK ${module.name} ${module.name}]`, markdown.adjust(module.localize)]);
+        gridContent.push([`[LINK ${app.name}-${module.name} ${module.name}]`, markdown.adjust(module.localize)]);
     });
     content += markdown.gridRender(gridContent);
 
@@ -46,7 +51,7 @@ function createHelpFile(outputPath, app) {
     });
     
     try {
-        fs.writeFileSync(path.join(outputPath, app.name, `${app.name}.sam`), content);
+        fs.writeFileSync(path.join(appOutputPath, `${app.name}.sam`), content);
     } catch (err) {
         error(err);
     }

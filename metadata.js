@@ -63,5 +63,28 @@ module.exports =  {
     objectName(namespace) {
         var segments = namespace.split('.');
         return segments.length > 0 ? segments[segments.length - 1] : "";
+    },
+
+    appName(namespace) {
+        var segments = namespace.split('.');
+        return segments.length == 4 ? segments[0] : 
+                segments.length == 5 ? segments[1] : "";
+    },
+
+    dashed(namespace) {
+        return namespace.replace(/\./g,"-");
+    },
+
+    // return a namespace without type and library
+    // typical namespace: Type.App.Module.Library.Object
+    compact(namespace) {
+        var segments = namespace.split('.');
+        if (segments.length == 5) { // start with type, i.e.: Table, Document, etc.
+            return `${segments[1]}.${segments[2]}.${segments[4]}`;
+        } else if (segments.length == 4) { // no trailing type
+            return `${segments[0]}.${segments[1]}.${segments[3]}`;
+        } else {
+            return namespace; // unknown structure
+        }
     }
 }

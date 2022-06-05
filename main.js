@@ -6,7 +6,6 @@ const _ = require('lodash');
 const path = require('path');
 const fs = require('fs');
 const metadata = require('./metadata');
-const fsStuff = require('./fs-stuff'); 
 const createAppHelp = require('./application');
 
 const assets = path.join(path.dirname(require.main.filename), 'assets');
@@ -37,8 +36,6 @@ if (!isStandard) {
     error("Usage: helpgen <output> [input path]\n'input path' argument or current folder must be inside the 'Standard' folder of a TaskBuilder Application\ne.g.: <your instance>\\Standard\\Applications\\<your app>");
 }
 
-fsStuff.rimraf(outputPath, false);
-
 process.chdir(workingPath);
 var appNames = metadata.scanFor('Application.config');
 console.log(appNames);
@@ -50,13 +47,12 @@ appNames.forEach(appName => {
     }
 });
 
-copyAsset('MagoCloudStructure.prjsam', assets, outputPath, function(content) {
+copyAsset('Tables.sam', assets, outputPath, function(content) {
     apps.forEach(app => {
-        content += `project=${app.name}\\${app.name}.sam\n` 
+        content += `[INCLUDE Tables-${app.name}/${app.name}.sam]\n` 
     });
     return content;
 });
-copyAsset('DatabaseRefGuide.sam', assets, outputPath);
 
 console.log('end');
 
