@@ -80,7 +80,7 @@ function createTableDescription(table) {
                 columnType(column), 
                 markdown.asCheck(column.DocumentationInfo.mandatory), 
                 markdown.asCheck(column.DocumentationInfo.readonly), 
-                column.SchemaInfo.defaultvalue, 
+                defaultValue(column), 
                 markdown.adjust(column.DocumentationInfo.content) 
             ])
         });
@@ -141,6 +141,14 @@ function columnType(column) {
         return column.SchemaInfo.enumname;
     }
     return column.SchemaInfo.type;
+}
+
+//-----------------------------------------------------------------------------
+function defaultValue(column) {
+    if (column.SchemaInfo.type == "Date" || column.SchemaInfo.type == "DateTime" ) {
+        if (column.SchemaInfo.defaultvalue == "1799-12-31T00:00:00") return "empty";
+    }
+    return column.SchemaInfo.defaultvalue;
 }
 
 //-----------------------------------------------------------------------------
