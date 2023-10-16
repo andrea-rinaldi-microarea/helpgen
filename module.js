@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const markdown = require('./markdown');
 const error = require('./error');
+const chalk = require('chalk');
 
 module.exports = function createModuleHelp(module, workingPath, outputPath) {
     process.chdir(path.join(workingPath, module.name));
@@ -17,7 +18,7 @@ module.exports = function createModuleHelp(module, workingPath, outputPath) {
     }
     module.dbObjects = metadata.parseXML(dbMetadata);
 
-    if (metadata.isArray(module.dbObjects.Tables)) {
+    if (metadata.isArray(module.dbObjects.tables)) {
         mergeDBInfoData(module.dbObjects);
         createHelpFile(outputPath, module);
         return true;
@@ -30,7 +31,7 @@ function createHelpFile(outputPath, module) {
     var content = `[H2 ${module.appName}-${module.name}]${module.localize}\nHere the **${module.localize}** tables:\n\n`;
 
     var gridContent = [["Table name", "Description"]];
-    module.dbObjects.Tables.Table.forEach(table => {
+    module.dbObjects.tables.table.forEach(table => {
         if (!metadata.defined(table.localize)) table.localize = "";
         gridContent.push(
                             [`[LINK ${metadata.dashed(metadata.compact(table.namespace))} ${metadata.objectName(table.namespace)}]`, 
@@ -39,7 +40,7 @@ function createHelpFile(outputPath, module) {
     });
     content += markdown.gridRender(gridContent);
 
-    module.dbObjects.Tables.Table.forEach(table => {
+    module.dbObjects.tables.table.forEach(table => {
         content += createTableDescription(table);
     });
     try {
@@ -58,30 +59,52 @@ function createTableDescription(table) {
     var gridContent = [
         ["Phisical Name",           metadata.objectName(table.namespace)],
         ["Content",                 markdown.adjust(table.localize)],
-        ["Part of the document",    partOfDocument(table.Document, metadata.appName(table.namespace))]
+        ["Part of the document",    partOfDocument(table.document, metadata.appName(table.namespace))]
     ];
-    if (metadata.defined(table.Reference) && table.Reference != '') {
+    if (metadata.defined(table.reference) && table.reference != '') {
         gridContent.push(
-            ["References",          `[LINK ${metadata.dashed(metadata.compact(table.Reference))} ${table.namespace}]`]
+            ["References",          `[LINK ${metadata.dashed(metadata.compact(table.reference))} ${table.namespace}]`]
         );
     }
     content += markdown.gridRender(gridContent, { allLines: true });
 
     content += "[H4] Overview\n";
-    if (!metadata.defined(table.DocumentationInfo.content)) table.DocumentationInfo.content = "";
-    content += `${markdown.adjust(table.DocumentationInfo.content)}\n`;
+
+    if (!metadata.defined(table.documentationinfo)) {
+        table.documentationinfo = { content : "", mandatory : false, readonly : false };
+    } else {
+        if(!metadata.defined(table.documentationinfo.content) )
+           table.documentationinfo.content = "";
+        if(!metadata.defined(table.documentationinfo.mandatory) )
+           table.documentationinfo.mandatory = false;
+        if(!metadata.defined(table.documentationinfo.readonly) )
+           table.documentationinfo.readonly = false;
+    }
+
+    content += `${markdown.adjust(table.documentationinfo.content)}\n`;
 
     content += "[H4] Fields\n";
-    if (metadata.isArray(table.Columns)) {
+    if (metadata.isArray(table.columns)) {
         gridContent = [["Name", "Type & Len", "M", "R/O", "D", "Description"]];
-        table.Columns.Column.forEach(column => {
+        table.columns.column.forEach(column => {
+            if (!metadata.defined(column.documentationinfo)) {
+                column.documentationinfo = { content : "", mandatory : false, readonly : false };
+            } else {
+                if(!metadata.defined(column.documentationinfo.content) )
+                   column.documentationinfo.content = "";
+                if(!metadata.defined(column.documentationinfo.mandatory) )
+                   column.documentationinfo.mandatory = false;
+                if(!metadata.defined(column.documentationinfo.readonly) )
+                   column.documentationinfo.readonly = false;
+            }
+
             gridContent.push([
                 hotlink(column, metadata.appName(table.namespace)), 
                 columnType(column), 
-                markdown.asCheck(column.DocumentationInfo.mandatory), 
-                markdown.asCheck(column.DocumentationInfo.readonly), 
+                markdown.asCheck(column.documentationinfo.mandatory), 
+                markdown.asCheck(column.documentationinfo.readonly), 
                 defaultValue(column), 
-                markdown.adjust(column.DocumentationInfo.content) 
+                markdown.adjust(column.documentationinfo.content) 
             ])
         });
         content += markdown.gridRender(gridContent, { allLines: true });
@@ -95,21 +118,21 @@ function createTableDescription(table) {
 
 //-----------------------------------------------------------------------------
 function mergeDBInfoData(dbObjects) {
-    dbObjects.Tables.Table.forEach(table => {
+    dbObjects.tables.table.forEach(table => {
         var dbinfoFName = path.join("ModuleObjects", "DBInfo",  `${metadata.objectName(table.namespace)}.xml`);
         if (!fs.existsSync(dbinfoFName)) {
             return;
         }
         dbInfoData = metadata.parseXML(dbinfoFName);
         if (metadata.defined(dbInfoData.localize)) table.localize = dbInfoData.localize;
-        if (metadata.defined(dbInfoData.Reference)) table.Reference = dbInfoData.Reference;
-        if (metadata.defined(dbInfoData.Document)) table.Document = dbInfoData.Document;
+        if (metadata.defined(dbInfoData.reference)) table.reference = dbInfoData.reference;
+        if (metadata.defined(dbInfoData.document)) table.document = dbInfoData.document;
 
-        if (metadata.isArray(table.Columns)) {
-            table.Columns.Column.forEach(column => {
-                var colInfo = lookup(column.SchemaInfo.content, dbInfoData);
-                if (metadata.defined(colInfo.Reference) && colInfo.Reference != "") 
-                    column.Reference = colInfo.Reference;
+        if (metadata.isArray(table.columns)) {
+            table.columns.column.forEach(column => {
+                var colInfo = lookup(column.schemainfo.content, dbInfoData);
+                if (metadata.defined(colInfo.reference) && colInfo.reference != "") 
+                    column.reference = colInfo.reference;
             });
         }
     });
@@ -135,28 +158,28 @@ function partOfDocument(documentList, appName) {
 
 //-----------------------------------------------------------------------------
 function columnType(column) {
-    if (column.SchemaInfo.type == "String") {
-        return `String ${column.SchemaInfo.length}`;
-    } else if (column.SchemaInfo.type == "Enum") {
-        return column.SchemaInfo.enumname;
+    if (column.schemainfo.type == "String") {
+        return `String ${column.schemainfo.length}`;
+    } else if (column.schemainfo.type == "Enum") {
+        return column.schemainfo.enumname;
     }
-    return column.SchemaInfo.type;
+    return column.schemainfo.type;
 }
 
 //-----------------------------------------------------------------------------
 function defaultValue(column) {
-    if (column.SchemaInfo.type == "Date" || column.SchemaInfo.type == "DateTime" ) {
-        if (column.SchemaInfo.defaultvalue == "1799-12-31T00:00:00") return "empty";
+    if (column.schemainfo.type == "Date" || column.schemainfo.type == "DateTime" ) {
+        if (column.schemainfo.defaultvalue == "1799-12-31T00:00:00") return "empty";
     }
-    return column.SchemaInfo.defaultvalue;
+    return column.schemainfo.defaultvalue;
 }
 
 //-----------------------------------------------------------------------------
 function lookup(columnName, dbInfo) {
-    if (!metadata.isArray(dbInfo.Fields)) return {};
+    if (!metadata.isArray(dbInfo.fields)) return {};
     var colInfo = {};
-    dbInfo.Fields.Column.every(column => {
-        if (column.Name == columnName) {
+    dbInfo.fields.column.every(column => {
+        if (column.name == columnName) {
             colInfo = column;
             return false;
         }
@@ -168,11 +191,11 @@ function lookup(columnName, dbInfo) {
 
 //-----------------------------------------------------------------------------
 function hotlink(column, appName) {
-    if (metadata.defined(column.Reference)) {
-        if (column.Reference.includes('/')) {
-            return `[LINK ${appName}-${column.Reference.split('/')[0]}-${column.Reference.split('/')[1]} ${column.SchemaInfo.content}]`;
+    if (metadata.defined(column.reference)) {
+        if (column.reference.includes('/')) {
+            return `[LINK ${appName}-${column.reference.split('/')[0]}-${column.reference.split('/')[1]} ${column.schemainfo.content}]`;
         }
-        return `[LINK ${metadata.dashed(metadata.compact(column.Reference))} ${column.SchemaInfo.content}]`;
+        return `[LINK ${metadata.dashed(metadata.compact(column.reference))} ${column.schemainfo.content}]`;
     }
-    return column.SchemaInfo.content;
+    return column.schemainfo.content;
 }

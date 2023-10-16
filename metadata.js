@@ -17,8 +17,8 @@ module.exports =  {
     },
 
     //-----------------------------------------------------------------------------
-    parseXML(filename) {
-        const parser = new xml2js.Parser({ mergeAttrs: true, explicitArray: false, explicitRoot: false, charkey: 'content' });
+    parseXML(filename) {                     
+        const parser = new xml2js.Parser({ mergeAttrs: true, explicitArray: false, explicitRoot: false, charkey: 'content', normalizeTags : true});
     
         let xmlContent = fs.readFileSync(filename, "utf8");
         
@@ -26,6 +26,18 @@ module.exports =  {
         
         parser.parseString(xmlContent, (err, result) => {
             if(err === null) {
+
+                var splittedPath = filename.split('\\');
+                var nameOnly = splittedPath[splittedPath.length - 1];
+
+                if (nameOnly == 'EFSchemaObjects.xml' && result.tables.table != undefined)
+                {
+                    for(var i = 0; i < result.tables.table.length; i ++) {
+                        if(result.tables.table[i].columns != undefined && !Array.isArray(result.tables.table[i].columns.column)) {
+                           result.tables.table[i].columns.column = [result.tables.table[i].columns.column];
+                        }
+                    }
+                }
                 JSONMetadata = result;
             }
             else {

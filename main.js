@@ -30,15 +30,17 @@ if (cmdArgs.length < 2) {
     workingPath = cmdArgs[1];
 }
 
-var isStandard = _.toLower(workingPath).endsWith('\\standard\\applications');
+var splittedPath = (workingPath).toLowerCase().split("\\").filter((element) => element !== "")
+var applicationsDir = splittedPath[splittedPath.length - 1]
+var standardDir = splittedPath[splittedPath.length - 2]
 
-if (!isStandard) {
-    error("Usage: helpgen <output> [input path]\n'input path' argument or current folder must be inside the 'Standard' folder of a TaskBuilder Application\ne.g.: <your instance>\\Standard\\Applications\\<your app>");
-}
+if(standardDir != "standard" || applicationsDir != "applications")
+   error("Usage: helpgen <output> [input path]\n'input path' argument or current folder must be inside the 'Standard' folder of a TaskBuilder Application\ne.g.: <your instance>\\Standard\\Applications\\<your app>");
 
 process.chdir(workingPath);
 var appNames = metadata.scanFor('Application.config');
 console.log(appNames);
+ 
 apps = [];
 appNames.forEach(appName => {
     app = {name: appName};
@@ -57,8 +59,6 @@ copyAsset('Tables.sam', assets, outputPath, function(content) {
 console.log('end');
 
 //=============================================================================
-
-
 
 function copyAsset(assetName, source, destination, process = null) {
     try {
