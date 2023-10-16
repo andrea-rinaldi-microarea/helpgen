@@ -9,9 +9,9 @@ const metadata = require('./metadata');
 const createAppHelp = require('./application');
 
 const assets = path.join(path.dirname(require.main.filename), 'assets');
-console.log(assets);
+//console.log(assets);
 
-console.log(chalk.bold('Welcome to the MagoCloud Help Pages generator'));
+console.log(chalk.cyan(chalk.bold('WELCOME TO THE MAGOCLOUD HELP PAGES GENERATOR!\n')));
 
 var workingPath = null;
 const cmdArgs = process.argv.slice(2);
@@ -39,10 +39,14 @@ if(standardDir != "standard" || applicationsDir != "applications")
 
 process.chdir(workingPath);
 var appNames = metadata.scanFor('Application.config');
+console.log(chalk.bold('APPLICATIONS :'));
 console.log(appNames);
+
+console.log(chalk.bold(chalk.cyan('...GENERATION STARTED...')));
  
 apps = [];
 appNames.forEach(appName => {
+    //if(appName != 'MDC') return //FOR DEBUG
     app = {name: appName};
     if (createAppHelp(app, workingPath, outputPath)) {
         apps.push(app);
@@ -56,7 +60,7 @@ copyAsset('Tables.sam', assets, outputPath, function(content) {
     return content;
 });
 
-console.log('end');
+console.log(chalk.bold(chalk.cyan('...GENERATION COMPLETED!')));
 
 //=============================================================================
 

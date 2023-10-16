@@ -38,7 +38,7 @@ function createHelpFile(outputPath, module) {
                             markdown.adjust(table.localize)]
                         );
     });
-    content += markdown.gridRender(gridContent);
+    content += markdown.gridRender(gridContent,{ forceTableNewLines : true });
 
     module.dbObjects.tables.table.forEach(table => {
         content += createTableDescription(table);

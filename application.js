@@ -6,6 +6,7 @@ const fs = require('fs');
 const _ = require('lodash');
 const markdown = require('./markdown');
 const fsStuff = require('./fs-stuff'); 
+const chalk = require('chalk');
 
 module.exports = function createApplicationHelp(app, workingPath, outputPath) {
     process.chdir(path.join(workingPath, app.name));
@@ -25,7 +26,7 @@ module.exports = function createApplicationHelp(app, workingPath, outputPath) {
         app.localize = `${app.name} Application`;
     }
     if (app.modules.length > 0) {
-        console.log(`${app.name}:`);
+        console.log(chalk.bold(`${app.name.toUpperCase()} Modules :`));
         createHelpFile(appOutputPath, app);
         console.log(moduleNames);
         return true;
@@ -44,7 +45,7 @@ function createHelpFile(appOutputPath, app) {
     app.modules.forEach(module => {
         gridContent.push([`[LINK ${app.name}-${module.name} ${module.name}]`, markdown.adjust(module.localize)]);
     });
-    content += markdown.gridRender(gridContent);
+    content += markdown.gridRender(gridContent, { forceTableNewLines : true });
 
     app.modules.forEach(module => {
         content += `[INCLUDE ${module.name}.sam]\n`;

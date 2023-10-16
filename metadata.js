@@ -74,7 +74,7 @@ module.exports =  {
     //-----------------------------------------------------------------------------
     objectName(namespace) {
         var segments = namespace.split('.');
-        return segments.length > 0 ? segments[segments.length - 1] : "";
+        return segments.length > 0 ? segments[segments.length - 1] : " ";
     },
 
     appName(namespace) {
