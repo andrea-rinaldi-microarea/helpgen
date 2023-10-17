@@ -6,8 +6,7 @@ const xml2js = require('xml2js');
 const _ = require('lodash');
 
 module.exports =  {
-
-    //-----------------------------------------------------------------------------
+    //=============================================================================
     scanFor(markerFile) {
         var folders = [];
         glob.sync(path.join('*', markerFile), { nocase: true }).forEach(folder => {
@@ -16,7 +15,7 @@ module.exports =  {
         return folders;
     },
 
-    //-----------------------------------------------------------------------------
+    //=============================================================================
     parseXML(filename) {                     
         const parser = new xml2js.Parser({ mergeAttrs: true, explicitArray: false, explicitRoot: false, charkey: 'content', normalizeTags : true});
     
@@ -26,14 +25,12 @@ module.exports =  {
         
         parser.parseString(xmlContent, (err, result) => {
             if(err === null) {
-
                 var splittedPath = filename.split('\\');
                 var nameOnly = splittedPath[splittedPath.length - 1];
 
                 if (nameOnly == 'EFSchemaObjects.xml' && result.tables.table != undefined)
                 {
-                    if(!this.isArray(result.tables))
-                    {
+                    if(!this.isArray(result.tables)) {
                         var tmpTable = JSON.parse(JSON.stringify(result.tables.table))
                         result.tables = { table : [] };
                         result.tables.table.push(tmpTable)
@@ -46,8 +43,7 @@ module.exports =  {
                     }
                 }
                 JSONMetadata = result;
-            }
-            else {
+            } else {
                 error(err);
             }
         });
@@ -55,12 +51,12 @@ module.exports =  {
         return JSONMetadata;
     },
 
-    //-----------------------------------------------------------------------------
+    //=============================================================================
     defined(object) {
         return (typeof object != 'undefined' && object != null);
     },
 
-    // the Mago's metadata array in the XML are transformed in JS objects with a single propoerty which is an array
+    // the Mago's metadata array in the XML are transformed in JS objects with a single property which is an array
     // <Fields>
     //   <Column Name="AccTpl" ></Column>
     //   <Column Name="PostingDate"></Column>
@@ -71,31 +67,35 @@ module.exports =  {
     //         {Name="PostingDate"}
     //     ]
     // }
-    //-----------------------------------------------------------------------------
+
+    //=============================================================================
     isArray(object) {
         if (typeof object !== 'object') return false;
         var ar = _.keys(object);
         return ar.length == 1 && Array.isArray(object[ar[0]]);
     },
 
-    //-----------------------------------------------------------------------------
+    //=============================================================================
     objectName(namespace) {
         var segments = namespace.split('.');
         return segments.length > 0 ? segments[segments.length - 1] : " ";
     },
 
+    //=============================================================================
     appName(namespace) {
         var segments = namespace.split('.');
         return segments.length == 4 ? segments[0] : 
                 segments.length == 5 ? segments[1] : "";
     },
 
+    //=============================================================================
     dashed(namespace) {
         return namespace.replace(/\./g,"-");
     },
 
     // return a namespace without type and library
     // typical namespace: Type.App.Module.Library.Object
+    //=============================================================================
     compact(namespace) {
         var segments = namespace.split('.');
         if (segments.length == 5) { // start with type, i.e.: Table, Document, etc.

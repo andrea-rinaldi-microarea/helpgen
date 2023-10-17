@@ -4,7 +4,6 @@ const path = require('path');
 const fs = require('fs');
 const markdown = require('./markdown');
 const error = require('./error');
-const chalk = require('chalk');
 
 module.exports = function createModuleHelp(module, workingPath, outputPath) {
     process.chdir(path.join(workingPath, module.name));
@@ -26,7 +25,7 @@ module.exports = function createModuleHelp(module, workingPath, outputPath) {
     return false;
 }
 
-//-----------------------------------------------------------------------------
+//=============================================================================
 function createHelpFile(outputPath, module) {
     var content = `[H2 ${module.appName}-${module.name}]${module.localize}\nHere the **${module.localize}** tables:\n\n`;
 
@@ -50,7 +49,7 @@ function createHelpFile(outputPath, module) {
     }
 }
 
-//-----------------------------------------------------------------------------
+//=============================================================================
 function createTableDescription(table) {
     var content = `[H3 ${metadata.dashed(metadata.compact(table.namespace))}]${metadata.objectName(table.namespace)}\n`;
 
@@ -86,6 +85,17 @@ function createTableDescription(table) {
     content += "[H4] Fields\n";
     if (metadata.isArray(table.columns)) {
         gridContent = [["Name", "Type & Len", "M", "R/O", "D", "Description"]];
+        
+        if(table.foreignkeys != undefined)
+        {
+        //console.log(JSON.stringify(table.foreignkeys))
+           var segmentList = table.foreignkeys.foreignkey.fksegments.split(',');
+           for (var i = 0; i < segmentList.length; i++)
+               segmentList[i] = segmentList[i].trim();
+           var objForeignKeys = { externalTable : table.foreignkeys.foreignkey.onns, fields : segmentList}
+           //console.log(objForeignKeys)
+        }
+           
         table.columns.column.forEach(column => {
             if (!metadata.defined(column.documentationinfo)) {
                 column.documentationinfo = { content : "", mandatory : false, readonly : false };
@@ -98,8 +108,20 @@ function createTableDescription(table) {
                    column.documentationinfo.readonly = false;
             }
 
+            var theExternalTable = "";
+
+            if(objForeignKeys != undefined)
+            {
+                for(var i = 0; i < objForeignKeys.fields.length; i ++)
+                    if(objForeignKeys.fields[i] == column.schemainfo.content) {
+                       theExternalTable = objForeignKeys.externalTable
+                       //console.log('TAB : ' + table.namespace + ' / FK : ' + theExternalTable)
+                       break;
+                    }
+            }
+
             gridContent.push([
-                hotlink(column, metadata.appName(table.namespace)), 
+                hotlink(column, theExternalTable), 
                 columnType(column), 
                 markdown.asCheck(column.documentationinfo.mandatory), 
                 markdown.asCheck(column.documentationinfo.readonly), 
@@ -116,7 +138,7 @@ function createTableDescription(table) {
     return content;
 }
 
-//-----------------------------------------------------------------------------
+//=============================================================================
 function mergeDBInfoData(dbObjects) {
     dbObjects.tables.table.forEach(table => {
         var dbinfoFName = path.join("ModuleObjects", "DBInfo",  `${metadata.objectName(table.namespace)}.xml`);
@@ -138,7 +160,7 @@ function mergeDBInfoData(dbObjects) {
     });
 }
 
-//-----------------------------------------------------------------------------
+//=============================================================================
 function partOfDocument(documentList, appName) {
     if (!metadata.defined(documentList) || documentList == "") {
         return "N/A";
@@ -156,7 +178,7 @@ function partOfDocument(documentList, appName) {
     return output;
 }
 
-//-----------------------------------------------------------------------------
+//=============================================================================
 function columnType(column) {
     if (column.schemainfo.type == "String") {
         return `String ${column.schemainfo.length}`;
@@ -166,7 +188,7 @@ function columnType(column) {
     return column.schemainfo.type;
 }
 
-//-----------------------------------------------------------------------------
+//=============================================================================
 function defaultValue(column) {
     if (column.schemainfo.type == "Date" || column.schemainfo.type == "DateTime" ) {
         if (column.schemainfo.defaultvalue == "1799-12-31T00:00:00") return "empty";
@@ -174,7 +196,7 @@ function defaultValue(column) {
     return column.schemainfo.defaultvalue;
 }
 
-//-----------------------------------------------------------------------------
+//=============================================================================
 function lookup(columnName, dbInfo) {
     if (!metadata.isArray(dbInfo.fields)) return {};
     var colInfo = {};
@@ -189,13 +211,12 @@ function lookup(columnName, dbInfo) {
     return colInfo;
 }
 
-//-----------------------------------------------------------------------------
+//=============================================================================
 function hotlink(column, appName) {
-    if (metadata.defined(column.reference)) {
-        if (column.reference.includes('/')) {
-            return `[LINK ${appName}-${column.reference.split('/')[0]}-${column.reference.split('/')[1]} ${column.schemainfo.content}]`;
-        }
-        return `[LINK ${metadata.dashed(metadata.compact(column.reference))} ${column.schemainfo.content}]`;
+    if(appName != '') {
+       var link = `[LINK ${metadata.dashed(metadata.compact(appName))} ${column.schemainfo.content}]`
+       return link;
+    } else {
+       return column.schemainfo.content;  
     }
-    return column.schemainfo.content;
 }

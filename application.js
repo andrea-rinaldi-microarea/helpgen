@@ -36,8 +36,7 @@ module.exports = function createApplicationHelp(app, workingPath, outputPath) {
     return false;
 }
 
-
-//-----------------------------------------------------------------------------
+//=============================================================================
 function createHelpFile(appOutputPath, app) {
     var content = `[H1]${app.localize}\nHere the **${app.localize}** modules:\n\n`;
 

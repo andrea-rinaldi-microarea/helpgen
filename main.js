@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-
 const error = require('./error');
 const chalk = require('chalk');
 const _ = require('lodash');
@@ -9,7 +8,6 @@ const metadata = require('./metadata');
 const createAppHelp = require('./application');
 
 const assets = path.join(path.dirname(require.main.filename), 'assets');
-//console.log(assets);
 
 console.log(chalk.cyan(chalk.bold('WELCOME TO THE MAGOCLOUD HELP PAGES GENERATOR!\n')));
 
@@ -42,11 +40,10 @@ var appNames = metadata.scanFor('Application.config');
 console.log(chalk.bold('APPLICATIONS :'));
 console.log(appNames);
 
-console.log(chalk.bold(chalk.cyan('...GENERATION STARTED...')));
+console.log(chalk.bold(chalk.cyan('\n...GENERATION STARTED...\n')));
  
 apps = [];
 appNames.forEach(appName => {
-    //if(appName != 'WMS') return //FOR DEBUG
     app = {name: appName};
     if (createAppHelp(app, workingPath, outputPath)) {
         apps.push(app);
@@ -60,10 +57,9 @@ copyAsset('Tables.sam', assets, outputPath, function(content) {
     return content;
 });
 
-console.log(chalk.bold(chalk.cyan('...GENERATION COMPLETED!')));
+console.log(chalk.bold(chalk.cyan('\n...GENERATION COMPLETED!')));
 
 //=============================================================================
-
 function copyAsset(assetName, source, destination, process = null) {
     try {
         if (process == null) {
