@@ -44,7 +44,7 @@ function createHelpFile(outputPath, module) {
         content += createTableDescription(table);
     });
     try {
-        fs.writeFileSync(path.join(outputPath, `${module.name}.sam`), content);
+        fs.writeFileSync(path.join(outputPath, `${module.name}_tables.sam`), content);
     } catch (err) {
         error(err);
     }

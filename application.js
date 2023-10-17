@@ -48,11 +48,11 @@ function createHelpFile(appOutputPath, app) {
     content += markdown.gridRender(gridContent, { forceTableNewLines : true });
 
     app.modules.forEach(module => {
-        content += `[INCLUDE ${module.name}.sam]\n`;
+        content += `[INCLUDE ${module.name}_tables.sam]\n`;
     });
     
     try {
-        fs.writeFileSync(path.join(appOutputPath, `${app.name}.sam`), content);
+        fs.writeFileSync(path.join(appOutputPath, `${app.name}_modules.sam`), content);
     } catch (err) {
         error(err);
     }

@@ -46,7 +46,7 @@ console.log(chalk.bold(chalk.cyan('...GENERATION STARTED...')));
  
 apps = [];
 appNames.forEach(appName => {
-    //if(appName != 'MDC') return //FOR DEBUG
+    //if(appName != 'WMS') return //FOR DEBUG
     app = {name: appName};
     if (createAppHelp(app, workingPath, outputPath)) {
         apps.push(app);
@@ -55,7 +55,7 @@ appNames.forEach(appName => {
 
 copyAsset('Tables.sam', assets, outputPath, function(content) {
     apps.forEach(app => {
-        content += `[INCLUDE Tables-${app.name}/${app.name}.sam]\n` 
+        content += `[INCLUDE Tables-${app.name}/${app.name}_modules.sam]\n` 
     });
     return content;
 });

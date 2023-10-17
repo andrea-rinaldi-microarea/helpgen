@@ -32,6 +32,13 @@ module.exports =  {
 
                 if (nameOnly == 'EFSchemaObjects.xml' && result.tables.table != undefined)
                 {
+                    if(!this.isArray(result.tables))
+                    {
+                        var tmpTable = JSON.parse(JSON.stringify(result.tables.table))
+                        result.tables = { table : [] };
+                        result.tables.table.push(tmpTable)
+                    }
+
                     for(var i = 0; i < result.tables.table.length; i ++) {
                         if(result.tables.table[i].columns != undefined && !Array.isArray(result.tables.table[i].columns.column)) {
                            result.tables.table[i].columns.column = [result.tables.table[i].columns.column];
