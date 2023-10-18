@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-const error = require('./error');
+const notifications = require('./notifications');
 const chalk = require('chalk');
 const _ = require('lodash');
 const path = require('path');

@@ -3,7 +3,8 @@ const _ = require('lodash');
 const path = require('path');
 const fs = require('fs');
 const markdown = require('./markdown');
-const error = require('./error');
+const notifications = require('./notifications');
+const chalk = require('chalk');
 
 module.exports = function createModuleHelp(module, workingPath, outputPath) {
     process.chdir(path.join(workingPath, module.name));
@@ -13,9 +14,10 @@ module.exports = function createModuleHelp(module, workingPath, outputPath) {
     }
     var dbMetadata = path.join('EFCore', 'EFSchemaObjects.xml');
     if (!fs.existsSync(dbMetadata)) {
+        notifications.warning('Module <<' + module.name + '>> of application <<' + module.appName  + '>> has no tables defined')
         return false;
     }
-    module.dbObjects = metadata.parseXML(dbMetadata);
+    module.dbObjects = metadata.parseXML(dbMetadata, module.name, outputPath.split('-')[1]);
 
     if (metadata.isArray(module.dbObjects.tables)) {
         mergeDBInfoData(module.dbObjects);

@@ -1,11 +1,13 @@
-const error = require('./error');
+const notifications = require('./notifications');
 const path = require('path');
 const fs = require('fs');
 const glob = require('glob');
 const xml2js = require('xml2js');
 const _ = require('lodash');
+const { default: chalk } = require('chalk');
 
 module.exports =  {
+    
     //=============================================================================
     scanFor(markerFile) {
         var folders = [];
@@ -16,7 +18,7 @@ module.exports =  {
     },
 
     //=============================================================================
-    parseXML(filename) {                     
+    parseXML(filename, moduleName = '', appName = '') {                     
         const parser = new xml2js.Parser({ mergeAttrs: true, explicitArray: false, explicitRoot: false, charkey: 'content', normalizeTags : true});
     
         let xmlContent = fs.readFileSync(filename, "utf8");
@@ -28,7 +30,10 @@ module.exports =  {
                 var splittedPath = filename.split('\\');
                 var nameOnly = splittedPath[splittedPath.length - 1];
 
-                if (nameOnly == 'EFSchemaObjects.xml' && result.tables.table != undefined)
+                if (nameOnly == 'EFSchemaObjects.xml' && result.tables == undefined)
+                    notifications.warning('Module <<' + moduleName + '>> of application <<' + appName + '>>  has no tables defined')
+
+                if (nameOnly == 'EFSchemaObjects.xml' && result.tables != undefined && result.tables.table != undefined)
                 {
                     if(!this.isArray(result.tables)) {
                         var tmpTable = JSON.parse(JSON.stringify(result.tables.table))
