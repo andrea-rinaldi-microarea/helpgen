@@ -49,7 +49,7 @@ module.exports =  {
                 }
                 JSONMetadata = result;
             } else {
-                error(err);
+                notifications.error(err);
             }
         });
 

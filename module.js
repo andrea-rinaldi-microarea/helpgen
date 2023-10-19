@@ -34,10 +34,10 @@ function createHelpFile(outputPath, module) {
     var gridContent = [["Table name", "Description"]];
     module.dbObjects.tables.table.forEach(table => {
         if (!metadata.defined(table.localize)) table.localize = "";
-        gridContent.push(
-                            [`[LINK ${metadata.dashed(metadata.compact(table.namespace))} ${metadata.objectName(table.namespace)}]`, 
-                            markdown.adjust(table.localize)]
-                        );
+            gridContent.push(
+                                [`[LINK ${metadata.dashed(metadata.compact(table.namespace))} ${metadata.objectName(table.namespace)}]`, 
+                                markdown.adjust(table.localize)]
+                            );
     });
     content += markdown.gridRender(gridContent,{ forceTableNewLines : true });
 
@@ -47,7 +47,7 @@ function createHelpFile(outputPath, module) {
     try {
         fs.writeFileSync(path.join(outputPath, `${module.name}_tables.sam`), content);
     } catch (err) {
-        error(err);
+        notifications.error(err);
     }
 }
 

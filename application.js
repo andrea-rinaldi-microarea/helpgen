@@ -53,7 +53,7 @@ function createHelpFile(appOutputPath, app) {
     try {
         fs.writeFileSync(path.join(appOutputPath, `${app.name}_modules.sam`), content);
     } catch (err) {
-        error(err);
+        notifications.error(err);
     }
 }
 
