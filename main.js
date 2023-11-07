@@ -50,9 +50,9 @@ appNames.forEach(appName => {
     }
 });
 
-copyAsset('Tables.sam', assets, outputPath, function(content) {
+copyAsset('Applications.sam', assets, outputPath, function(content) {
     apps.forEach(app => {
-        content += `[INCLUDE Tables-${app.name}/${app.name}_modules.sam]\n` 
+        content += `[INCLUDE ${app.name}/${app.name}_modules.sam]\n` 
     });
     return content;
 });

@@ -13,10 +13,16 @@ module.exports = function createApplicationHelp(app, workingPath, outputPath) {
     _.assignIn(app, metadata.parseXML('Application.config'));
     var moduleNames = metadata.scanFor('Module.config');
     app.modules = [];
-    var appOutputPath = path.join(outputPath, `Tables-${app.name}`);
+    var appOutputPath = path.join(outputPath, `${app.name}`);
     fsStuff.rimraf(appOutputPath);
     fs.mkdirSync(appOutputPath);
     moduleNames.forEach(moduleName => {
+        //if(app.name != 'MDC') return//DEBUG
+           
+
+        if (!fs.existsSync(appOutputPath + '\\Modules')) 
+            fs.mkdirSync(appOutputPath + '\\Modules');
+
         mod = { name: moduleName, appName: app.name };
         if (createModuleHelp(mod, path.join(workingPath, app.name), appOutputPath)) {
             app.modules.push(mod);
@@ -47,7 +53,7 @@ function createHelpFile(appOutputPath, app) {
     content += markdown.gridRender(gridContent, { forceTableNewLines : true });
 
     app.modules.forEach(module => {
-        content += `[INCLUDE ${module.name}_tables.sam]\n`;
+        content += `[INCLUDE Modules/${module.name}_tables.sam]\n`;
     });
     
     try {
