@@ -30,8 +30,12 @@ module.exports = function createModuleHelp(module, workingPath, outputPath) {
 
 //=============================================================================
 function createHelpFile(outputPath, module) {
-    var content = `[H2 ${module.appName}-${module.name}]${module.localize}`
-    
+    var content = `[H2 ${module.appName}-${module.name}]${module.localize}\n`
+
+    content += `Go to the tables : [LINK ${module.appName}-${module.name}-Tables Tables]\n\n`
+    content += `Go to the enumerations : [LINK ${module.appName}-${module.name}-Enumerations Enumerations]\n`
+    content += `[H3 ${module.appName}-${module.name}-Tables]Tables\n`
+
     content += `\nHere the **${module.localize}** tables:\n\n`;
 
     var gridContent = [["Table name", "Description"]];
@@ -48,49 +52,56 @@ function createHelpFile(outputPath, module) {
         content += createTableDescription(table);
     });
 
-    /*if (fs.existsSync(path.join('ModuleObjects', 'Enums.xml')))
+    content += `\n[H3 ${module.appName}-${module.name}-Enumerations]Enumerations`
+    
+    if (fs.existsSync(path.join('ModuleObjects', 'Enums.xml')))
     {
         var xmlContent = metadata.parseXML(path.join('ModuleObjects', 'Enums.xml'));
+
+        if(xmlContent.tag != undefined){
+            content += `\nHere the **${module.localize}** enumerations:\n\n`;
+
+            if(!metadata.isArray(xmlContent)) {
+                var tmpContent = JSON.parse(JSON.stringify(xmlContent)).tag
+                xmlContent = { tag : [] };
+                xmlContent.tag.push(tmpContent)
+            }
         
-        content += `Here the **${module.localize}** enumerations:\n\n`;
+            var lsEnum = [];
 
-        if(!metadata.isArray(xmlContent)) {
-            var tmpContent = JSON.parse(JSON.stringify(xmlContent)).tag
-            xmlContent = { tag : [] };
-            xmlContent.tag.push(tmpContent)
-        }
-    
-        var lsEnum = [];
-    
-        for(let i = 0;i < xmlContent.tag.length; i ++ ){
-            var contentString = "";
-            if(xmlContent.tag[0].content != undefined)
-               contentString = xmlContent.tag[0].content.trim();
-    
-            lsEnum.push({
-                description : contentString,
-                name : xmlContent.tag[i].name,
-                defaultValue : xmlContent.tag[i].defaultValue,
-                itemLs : Array.from(xmlContent.tag[i].item),
-                value : xmlContent.tag[i].value,
-                nameSpace : module.appName + "." + module.name + "." + xmlContent.tag[i].name
-            })
-        }
-    
-        var gridContent = [["Enumeration name", "Description"]];
-    
-        lsEnum.forEach(element => {
-                gridContent.push(
-                                    [`[LINK ${metadata.dashed(metadata.compact(element.nameSpace))}]`, 
-                                    element.description]
-                                );
-        });
-        content += markdown.gridRender(gridContent,{ forceTableNewLines : true });
 
-        lsEnum.forEach(element => {
-            content += createEnumDescription(element);
-        });
-    }*/
+        
+            for(let i = 0;i < xmlContent.tag.length; i ++ ){
+                var contentString = "";
+
+                if(xmlContent.tag[i].content != undefined)
+                contentString = xmlContent.tag[i].content.trim();
+        
+                lsEnum.push({
+                    description : contentString,
+                    name : xmlContent.tag[i].name,
+                    defaultValue : xmlContent.tag[i].defaultValue,
+                    itemLs : Array.from(xmlContent.tag[i].item),
+                    value : xmlContent.tag[i].value,
+                    nameSpace : module.appName + "." + module.name + "." + xmlContent.tag[i].name.replaceAll(" ","_")
+                })
+            }
+        
+            var gridContent = [["Enumeration name", "Description"]];
+        
+            lsEnum.forEach(element => {
+                    gridContent.push(
+                                        [`[LINK ${metadata.dashed(metadata.compact(element.nameSpace))} ${element.name}]`, 
+                                        element.description]
+                                    );
+            });
+            content += markdown.gridRender(gridContent,{ forceTableNewLines : true });
+
+            lsEnum.forEach(element => {
+                content += createEnumDescription(element);
+            });
+         }
+    }
 
     try {
         fs.writeFileSync(path.join(outputPath + '\\Modules', `${module.name}_tables.sam`), content);
@@ -101,9 +112,9 @@ function createHelpFile(outputPath, module) {
 
 //=============================================================================
 function createTableDescription(table) {
-    var content = `[H3 ${metadata.dashed(metadata.compact(table.namespace))}]${metadata.objectName(table.namespace)}\n`;
+    var content = `[H4 ${metadata.dashed(metadata.compact(table.namespace))}]${metadata.objectName(table.namespace)}\n`;
 
-    content += "[H4] Base Info\n";
+    content += "[H5] Base Info\n";
 
     var gridContent = [
         ["Phisical Name",           metadata.objectName(table.namespace)],
@@ -117,7 +128,7 @@ function createTableDescription(table) {
     }
     content += markdown.gridRender(gridContent, { allLines: true });
 
-    content += "[H4] Overview\n";
+    content += "[H5] Overview\n";
 
     if (!metadata.defined(table.documentationinfo)) {
         table.documentationinfo = { content : "", mandatory : false, readonly : false };
@@ -132,7 +143,7 @@ function createTableDescription(table) {
 
     content += `${markdown.adjust(table.documentationinfo.content)}\n`;
 
-    content += "[H4] Fields\n";
+    content += "[H5] Fields\n";
     if (metadata.isArray(table.columns)) {
         gridContent = [["Name", "Type & Len", "M", "R/O", "D", "Description"]];
         
@@ -188,13 +199,13 @@ function createTableDescription(table) {
 //=============================================================================
 function createEnumDescription(enumeration) {
 
-    var content = `[H3 ${metadata.dashed(metadata.compact(enumeration.nameSpace))}]${enumeration.name}\n`;
+    var content = `[H4 ${metadata.dashed(metadata.compact(enumeration.nameSpace))}]${enumeration.name}\n`;
 
-    content += "[H4] Base Info\n";
+    content += "[H5] Base Info\n";
 
     content += enumeration.description + '\n'
 
-    content += "[H4] Overview\n";
+    content += "[H5] Overview\n";
 
     gridContent = [["Default", "Element", "Value", "Written as", "Db value", "Description"]];
         

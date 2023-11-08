@@ -17,7 +17,7 @@ module.exports = function createApplicationHelp(app, workingPath, outputPath) {
     fsStuff.rimraf(appOutputPath);
     fs.mkdirSync(appOutputPath);
     moduleNames.forEach(moduleName => {
-        if(app.name != 'MDC') return//DEBUG
+        //if(app.name != 'ERP') return//DEBUG
 
         if (!fs.existsSync(appOutputPath + '\\Modules')) 
             fs.mkdirSync(appOutputPath + '\\Modules');
