@@ -68,8 +68,6 @@ function createHelpFile(outputPath, module) {
             }
         
             var lsEnum = [];
-
-
         
             for(let i = 0;i < xmlContent.tag.length; i ++ ){
                 var contentString = "";
@@ -101,6 +99,11 @@ function createHelpFile(outputPath, module) {
                 content += createEnumDescription(element);
             });
          }
+         else {
+            content += "\n_/There aren't enumerations for this module yet!/_"
+         }
+    } else {
+        content += "\n_/There aren't enumerations for this module yet!/_"
     }
 
     try {
