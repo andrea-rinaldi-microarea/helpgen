@@ -17,11 +17,12 @@ module.exports = function createModuleHelp(module, workingPath, outputPath) {
         notifications.warning('Module <<' + module.name + '>> of application <<' + module.appName  + '>> has no tables defined')
         return false;
     }
-    module.dbObjects = metadata.parseXML(dbMetadata, module.name, outputPath.split('-')[1]);
+    module.dbObjects = metadata.parseXML(dbMetadata, module.name, outputPath);
 
     if (metadata.isArray(module.dbObjects.tables)) {
         mergeDBInfoData(module.dbObjects);
         createHelpFile(outputPath, module);
+
         return true;
     }
     return false;
@@ -29,7 +30,9 @@ module.exports = function createModuleHelp(module, workingPath, outputPath) {
 
 //=============================================================================
 function createHelpFile(outputPath, module) {
-    var content = `[H2 ${module.appName}-${module.name}]${module.localize}\nHere the **${module.localize}** tables:\n\n`;
+    var content = `[H2 ${module.appName}-${module.name}]${module.localize}`
+    
+    content += `\nHere the **${module.localize}** tables:\n\n`;
 
     var gridContent = [["Table name", "Description"]];
     module.dbObjects.tables.table.forEach(table => {
@@ -44,6 +47,51 @@ function createHelpFile(outputPath, module) {
     module.dbObjects.tables.table.forEach(table => {
         content += createTableDescription(table);
     });
+
+    /*if (fs.existsSync(path.join('ModuleObjects', 'Enums.xml')))
+    {
+        var xmlContent = metadata.parseXML(path.join('ModuleObjects', 'Enums.xml'));
+        
+        content += `Here the **${module.localize}** enumerations:\n\n`;
+
+        if(!metadata.isArray(xmlContent)) {
+            var tmpContent = JSON.parse(JSON.stringify(xmlContent)).tag
+            xmlContent = { tag : [] };
+            xmlContent.tag.push(tmpContent)
+        }
+    
+        var lsEnum = [];
+    
+        for(let i = 0;i < xmlContent.tag.length; i ++ ){
+            var contentString = "";
+            if(xmlContent.tag[0].content != undefined)
+               contentString = xmlContent.tag[0].content.trim();
+    
+            lsEnum.push({
+                description : contentString,
+                name : xmlContent.tag[i].name,
+                defaultValue : xmlContent.tag[i].defaultValue,
+                itemLs : Array.from(xmlContent.tag[i].item),
+                value : xmlContent.tag[i].value,
+                nameSpace : module.appName + "." + module.name + "." + xmlContent.tag[i].name
+            })
+        }
+    
+        var gridContent = [["Enumeration name", "Description"]];
+    
+        lsEnum.forEach(element => {
+                gridContent.push(
+                                    [`[LINK ${metadata.dashed(metadata.compact(element.nameSpace))}]`, 
+                                    element.description]
+                                );
+        });
+        content += markdown.gridRender(gridContent,{ forceTableNewLines : true });
+
+        lsEnum.forEach(element => {
+            content += createEnumDescription(element);
+        });
+    }*/
+
     try {
         fs.writeFileSync(path.join(outputPath + '\\Modules', `${module.name}_tables.sam`), content);
     } catch (err) {
@@ -90,12 +138,10 @@ function createTableDescription(table) {
         
         if(table.foreignkeys != undefined)
         {
-        //console.log(JSON.stringify(table.foreignkeys))
            var segmentList = table.foreignkeys.foreignkey.fksegments.split(',');
            for (var i = 0; i < segmentList.length; i++)
                segmentList[i] = segmentList[i].trim();
            var objForeignKeys = { externalTable : table.foreignkeys.foreignkey.onns, fields : segmentList}
-           //console.log(objForeignKeys)
         }
            
         table.columns.column.forEach(column => {
@@ -117,7 +163,6 @@ function createTableDescription(table) {
                 for(var i = 0; i < objForeignKeys.fields.length; i ++)
                     if(objForeignKeys.fields[i] == column.schemainfo.content) {
                        theExternalTable = objForeignKeys.externalTable
-                       //console.log('TAB : ' + table.namespace + ' / FK : ' + theExternalTable)
                        break;
                     }
             }
@@ -136,6 +181,42 @@ function createTableDescription(table) {
         content += "N/A\n";
         console.log(`${table.namespace} has no column defined`);
     }
+
+    return content;
+}
+
+//=============================================================================
+function createEnumDescription(enumeration) {
+
+    var content = `[H3 ${metadata.dashed(metadata.compact(enumeration.nameSpace))}]${enumeration.name}\n`;
+
+    content += "[H4] Base Info\n";
+
+    content += enumeration.description + '\n'
+
+    content += "[H4] Overview\n";
+
+    gridContent = [["Default", "Element", "Value", "Written as", "Db value", "Description"]];
+        
+    if((typeof enumeration.itemLs === 'array')) {
+        var tmpList = JSON.parse(JSON.stringify(enumeration.itemLs))
+        enumeration.itemLs = [];
+        enumeration.itemLs.push(tmpList)
+    }
+
+    for(let i = 0; i < enumeration.itemLs.length; i ++){
+        var rowArray = [];
+        rowArray.push(markdown.asCheck(enumeration.itemLs[i].value == enumeration.defaultValue))
+        rowArray.push(enumeration.itemLs[i].name)
+        rowArray.push(enumeration.itemLs[i].value)
+        rowArray.push(`{${enumeration.value}:${enumeration.itemLs[i].value}}`)
+        rowArray.push(enumeration.itemLs[i].stored)
+        rowArray.push(enumeration.itemLs[i].description != undefined ? enumeration.itemLs[i].description : "")
+        
+        gridContent.push(rowArray)
+    }
+
+    content += markdown.gridRender(gridContent, { allLines: true });
 
     return content;
 }

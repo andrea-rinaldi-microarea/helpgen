@@ -107,7 +107,10 @@ module.exports =  {
             return `${segments[1]}.${segments[2]}.${segments[4]}`;
         } else if (segments.length == 4) { // no trailing type
             return `${segments[0]}.${segments[1]}.${segments[3]}`;
-        } else {
+        } else if (segments.length == 3){
+            return `${segments[0]}.${segments[1]}.${segments[2]}`;
+        }
+        else {
             return namespace; // unknown structure
         }
     }
