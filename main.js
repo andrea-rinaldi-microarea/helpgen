@@ -57,7 +57,15 @@ copyAsset('Applications.sam', assets, outputPath, function(content) {
     return content;
 });
 
+fs.cp(path.join(path.dirname(require.main.filename), '_mago_styles'), path.join(outputPath,'_mago_styles'), { recursive: true }, (err) => {
+    if (err) {
+      console.error(err);
+    }
+  });
+
 console.log(chalk.bold(chalk.cyan('\n...GENERATION COMPLETED!')));
+
+
 
 //=============================================================================
 function copyAsset(assetName, source, destination, process = null) {

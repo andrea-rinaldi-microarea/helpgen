@@ -8,6 +8,8 @@ const { default: chalk } = require('chalk');
 
 module.exports =  {
     
+    currentApplicationEnumLs : [],
+
     //=============================================================================
     scanFor(markerFile) {
         var folders = [];

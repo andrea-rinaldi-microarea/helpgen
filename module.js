@@ -54,8 +54,7 @@ function createHelpFile(outputPath, module) {
 
     content += `\n[H3 ${module.appName}-${module.name}-Enumerations]Enumerations`
     
-    if (fs.existsSync(path.join('ModuleObjects', 'Enums.xml')))
-    {
+    if (fs.existsSync(path.join('ModuleObjects', 'Enums.xml'))){
         var xmlContent = metadata.parseXML(path.join('ModuleObjects', 'Enums.xml'));
 
         if(xmlContent.tag != undefined){
@@ -183,7 +182,7 @@ function createTableDescription(table) {
 
             gridContent.push([
                 hotlink(column, theExternalTable), 
-                columnType(column), 
+                columnType(column,table), 
                 markdown.asCheck(column.documentationinfo.mandatory), 
                 markdown.asCheck(column.documentationinfo.readonly), 
                 defaultValue(column), 
@@ -276,11 +275,21 @@ function partOfDocument(documentList, appName) {
 }
 
 //=============================================================================
-function columnType(column) {
+function columnType(column,table) {
     if (column.schemainfo.type == "String") {
         return `String ${column.schemainfo.length}`;
     } else if (column.schemainfo.type == "Enum") {
-        return column.schemainfo.enumname;
+        
+        if(metadata.currentApplicationEnumLs.length > 0)
+        {
+            for(let i = 0; i < metadata.currentApplicationEnumLs.length; i ++){
+                if(metadata.currentApplicationEnumLs[i].name == column.schemainfo.enumname)
+                   return `[LINK ${metadata.dashed(metadata.compact(metadata.currentApplicationEnumLs[i].nameSpace))} ${column.schemainfo.enumname}]`
+            }
+        }
+        else {
+            return column.schemainfo.enumname;
+        }
     }
     return column.schemainfo.type;
 }

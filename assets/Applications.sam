@@ -1,5 +1,9 @@
 [LANG en]
 [NOCOVER]
 
+[STYLE _mago_styles/mago-custom.css]
+[RESOURCES _mago_styles/skin.css]
+[RESOURCES _mago_styles/logo_top.png]
+
 [INCLUDE DatabaseRefGuide.sam]
 
