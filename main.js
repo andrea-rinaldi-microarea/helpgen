@@ -72,7 +72,8 @@ for(let i = 0; i < enumsFileLs.length; i ++) {
 }
 
 console.log(chalk.bold(chalk.cyan('\n...ENUMERATIONS ELABORATED SUCCESSFULLY...\n')));
- 
+console.log(chalk.bold(chalk.cyan('\n...APPLICATION GENERATION STARTED...\n')));
+
 apps = [];
 appNames.forEach(appName => {
     app = {name: appName};
@@ -80,8 +81,6 @@ appNames.forEach(appName => {
         apps.push(app);
     }
 });
-
-console.log(chalk.bold(chalk.cyan('\n...APPLICATION GENERATION STARTED...\n')));
 
 copyAsset('Applications.sam', assets, outputPath, function(content) {
     apps.forEach(app => {

@@ -365,12 +365,6 @@ span.node:hover {
     
 }
 
-.warning {
-    background-color: hsl(209deg 71% 85% / 30%);
-    border: 1px solid hsla(28, 79%, 72%, 0.1);
-    border-left: 5px solid hsl(209deg 100% 39%);
-  }
-
 .example {
     font-style: italic;
     font-size: 90%;

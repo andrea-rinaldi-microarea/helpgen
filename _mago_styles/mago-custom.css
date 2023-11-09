@@ -83,31 +83,39 @@ body {
 }
 
 h1 {
+  font-size: 210%;
+  font-weight: 600;
+  padding-top: 40px;
+}
+
+h2 {
 	 font-size: 210%;
 	 font-weight: 600;
 	 padding-top: 40px;
 }
 
-h2 {
-	 font-size: 170%;
+h3 {
+	 font-size: 190%;
 	 font-weight: 700;
 	 padding-top: 35px;
 }
   
-h3 {
-	 font-size: 140%;
+h4 {
+	 font-size: 170%;
 	 font-weight: 600;
 	 padding-top: 30px;
 }
 
-h4 {
-	 font-size: 120%;
-	 font-weight: 600;
-	 padding-top: 25px;
+h5 {
+	font-size: 150%;
+	font-weight: 600;
+	padding-top: 25px;
+  background-color: inherit;
+  padding-left: inherit;
 }
 
-h5 {
-	font-size: 100%;
+h6 {
+	font-size: 120%;
     font-weight: 600;
     margin-top: 30px;
     margin-bottom: 0;
@@ -119,16 +127,25 @@ h5 {
     display: table;
 }
 
-h6 {
-    font-size: 100%;
+.h7 {
+    font-size: 120%;
     font-weight: 600;
-    padding-top: 25px;
-    margin-top: 0;
-    margin-bottom: 10px;
+    text-decoration: underline;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    margin-top: 20px;
+    margin-bottom: 0;
+    padding-left: inherit;
+    padding-right: 10px;
+    display: table;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1, h2, h3, h4 {
 	line-height: 120%;
+}
+
+h5, h6, .h7 {
+	line-height: 100%;
 }
 
 p {
@@ -187,6 +204,10 @@ dd {
     -webkit-transform: translate(-50%, 0%);
     -moz-transform: translate(-50%, 0%);
     -o-transform: translate(-50%, 0%);
+}
+
+.tagcell {
+background-color: antiquewhite
 }
 
 .img_container img, .video_container video, .audio_container audio {
@@ -249,7 +270,7 @@ pre code {
 
 
 /***************** SECTIONS *****************/
-.info, .example, .warning {
+.info, .example, .warning, .localize, .configuration {
     margin-left: 20px;
     margin-right: 50px;
 	margin-top: 25px;
@@ -277,6 +298,18 @@ pre code {
     background-color: #ffedcc;
     border: 1px solid hsla(28, 79%, 72%, 0.1);
     border-left: 5px solid #f0b37e;
+}
+
+.localize {
+  background-color: #c7dbcb;
+  border: 1px solid hsla(28, 79%, 72%, 0.1);
+  border-left: 5px solid #447a4f;
+}
+
+.configuration {
+  background-color: #d9c9dd;
+  border: 1px solid hsla(28, 79%, 72%, 0.1);
+  border-left: 5px solid #66447a;
 }
 
 .marginnote {
