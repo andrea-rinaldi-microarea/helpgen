@@ -41,6 +41,37 @@ console.log(chalk.bold('APPLICATIONS :'));
 console.log(appNames);
 
 console.log(chalk.bold(chalk.cyan('\n...GENERATION STARTED...\n')));
+
+console.log(chalk.bold(chalk.cyan('\n...CHECK FOR ENUMERATIONS...\n')));
+
+var enumsFileLs = searchRecursiveFileByName(workingPath, 'Enums.xml');
+
+metadata.currentApplicationEnumLs = []
+
+for(let i = 0; i < enumsFileLs.length; i ++) {
+    var splittedPath = enumsFileLs[i].split("\\");
+    var xmlContent = metadata.parseXML(enumsFileLs[i]);
+
+    if(xmlContent.tag != undefined) {
+        if(!metadata.isArray(xmlContent)) {
+            var tmpContent = JSON.parse(JSON.stringify(xmlContent)).tag
+            xmlContent = { tag : [] };
+            xmlContent.tag.push(tmpContent) 
+        }
+
+        var appName = splittedPath[splittedPath.findIndex((element) => element == 'Applications') + 1]
+        var moduleName = splittedPath[splittedPath.findIndex((element) => element == 'Applications') + 2];
+            
+        for(let i = 0;i < xmlContent.tag.length; i ++ ){
+            metadata.currentApplicationEnumLs.push({
+                name : xmlContent.tag[i].name,
+                nameSpace : appName + "." + moduleName + "." + xmlContent.tag[i].name.replaceAll(" ","_")
+            })
+        }
+    }
+}
+
+console.log(chalk.bold(chalk.cyan('\n...ENUMERATIONS ELABORATED SUCCESSFULLY...\n')));
  
 apps = [];
 appNames.forEach(appName => {
@@ -50,12 +81,16 @@ appNames.forEach(appName => {
     }
 });
 
+console.log(chalk.bold(chalk.cyan('\n...APPLICATION GENERATION STARTED...\n')));
+
 copyAsset('Applications.sam', assets, outputPath, function(content) {
     apps.forEach(app => {
         content += `[INCLUDE ${app.name}/${app.name}_modules.sam]\n` 
     });
     return content;
 });
+
+console.log(chalk.bold(chalk.cyan('\n...COPYING MAGO STYLE FILES...\n')));
 
 fs.cp(path.join(path.dirname(require.main.filename), '_mago_styles'), path.join(outputPath,'_mago_styles'), { recursive: true }, (err) => {
     if (err) {
@@ -65,7 +100,26 @@ fs.cp(path.join(path.dirname(require.main.filename), '_mago_styles'), path.join(
 
 console.log(chalk.bold(chalk.cyan('\n...GENERATION COMPLETED!')));
 
+//=============================================================================
+function searchRecursiveFileByName (dir, pattern) {
+    var results = [];
+  
+    fs.readdirSync(dir).forEach(function (dirInner){
+      dirInner = path.resolve(dir, dirInner);
+  
+      var stat = fs.statSync(dirInner);
+  
+      if (stat.isDirectory()) {
+        results = results.concat(searchRecursiveFileByName(dirInner, pattern));
+      }
+  
+      if (stat.isFile() && dirInner.endsWith(pattern)) {
+        results.push(dirInner);
+      }
+    });  
 
+    return results;
+};
 
 //=============================================================================
 function copyAsset(assetName, source, destination, process = null) {

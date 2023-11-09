@@ -68,7 +68,7 @@ function createHelpFile(outputPath, module) {
         
             var lsEnum = [];
         
-            for(let i = 0;i < xmlContent.tag.length; i ++ ){
+            for(let i = 0;i < xmlContent.tag.length; i ++ ) {
                 var contentString = "";
 
                 if(xmlContent.tag[i].content != undefined)
@@ -182,7 +182,7 @@ function createTableDescription(table) {
 
             gridContent.push([
                 hotlink(column, theExternalTable), 
-                columnType(column,table), 
+                columnType(column), 
                 markdown.asCheck(column.documentationinfo.mandatory), 
                 markdown.asCheck(column.documentationinfo.readonly), 
                 defaultValue(column), 
@@ -217,8 +217,9 @@ function createEnumDescription(enumeration) {
         enumeration.itemLs.push(tmpList)
     }
 
-    for(let i = 0; i < enumeration.itemLs.length; i ++){
+    for(let i = 0; i < enumeration.itemLs.length; i ++) {
         var rowArray = [];
+        
         rowArray.push(markdown.asCheck(enumeration.itemLs[i].value == enumeration.defaultValue))
         rowArray.push(enumeration.itemLs[i].name)
         rowArray.push(enumeration.itemLs[i].value)
@@ -275,19 +276,16 @@ function partOfDocument(documentList, appName) {
 }
 
 //=============================================================================
-function columnType(column,table) {
+function columnType(column) {
     if (column.schemainfo.type == "String") {
         return `String ${column.schemainfo.length}`;
     } else if (column.schemainfo.type == "Enum") {
-        
-        if(metadata.currentApplicationEnumLs.length > 0)
-        {
+        if(metadata.currentApplicationEnumLs.length > 0) {
             for(let i = 0; i < metadata.currentApplicationEnumLs.length; i ++){
                 if(metadata.currentApplicationEnumLs[i].name == column.schemainfo.enumname)
                    return `[LINK ${metadata.dashed(metadata.compact(metadata.currentApplicationEnumLs[i].nameSpace))} ${column.schemainfo.enumname}]`
             }
-        }
-        else {
+        } else {
             return column.schemainfo.enumname;
         }
     }

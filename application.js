@@ -12,34 +12,6 @@ module.exports = function createApplicationHelp(app, workingPath, outputPath) {
     process.chdir(path.join(workingPath, app.name));
     _.assignIn(app, metadata.parseXML('Application.config'));
     var moduleNames = metadata.scanFor('Module.config');
-      
-    var enumsFileLs = searchRecursiveFileByName(path.join(workingPath, app.name) , 'Enums.xml');
-
-    metadata.currentApplicationEnumLs = []
-
-    for(let i = 0; i < enumsFileLs.length; i ++){
-        var splittedPath = enumsFileLs[i].split("\\");
-        var xmlContent = metadata.parseXML(enumsFileLs[i]);
-
-        if(xmlContent.tag != undefined){
-            if(!metadata.isArray(xmlContent)) {
-                var tmpContent = JSON.parse(JSON.stringify(xmlContent)).tag
-                xmlContent = { tag : [] };
-                xmlContent.tag.push(tmpContent)
-                
-            }
-
-            //This is done because the position of the mago workspace may change between the users who run this program
-            moduleName = splittedPath[splittedPath.findIndex((element) => element == 'Applications') + 2];
-                
-            for(let i = 0;i < xmlContent.tag.length; i ++ ){
-                metadata.currentApplicationEnumLs.push({
-                    name : xmlContent.tag[i].name,
-                    nameSpace : app.name + "." + moduleName + "." + xmlContent.tag[i].name.replaceAll(" ","_")
-                })
-            }
-        }
-    }  
     
     app.modules = [];
     var appOutputPath = path.join(outputPath, `${app.name}`);
@@ -67,27 +39,6 @@ module.exports = function createApplicationHelp(app, workingPath, outputPath) {
     }
     return false;
 }
-
-//=============================================================================
-function searchRecursiveFileByName (dir, pattern){
-    var results = [];
-  
-    fs.readdirSync(dir).forEach(function (dirInner){
-      dirInner = path.resolve(dir, dirInner);
-  
-      var stat = fs.statSync(dirInner);
-  
-      if (stat.isDirectory()){
-        results = results.concat(searchRecursiveFileByName(dirInner, pattern));
-      }
-  
-      if (stat.isFile() && dirInner.endsWith(pattern)){
-        results.push(dirInner);
-      }
-    });  
-
-    return results;
-};
 
 //=============================================================================
 function createHelpFile(appOutputPath, app) {
