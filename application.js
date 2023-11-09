@@ -26,12 +26,16 @@ module.exports = function createApplicationHelp(app, workingPath, outputPath) {
                 var tmpContent = JSON.parse(JSON.stringify(xmlContent)).tag
                 xmlContent = { tag : [] };
                 xmlContent.tag.push(tmpContent)
+                
             }
+
+            //This is done because the position of the mago workspace may change between the users who run this program
+            moduleName = splittedPath[splittedPath.findIndex((element) => element == 'Applications') + 2];
                 
             for(let i = 0;i < xmlContent.tag.length; i ++ ){
                 metadata.currentApplicationEnumLs.push({
                     name : xmlContent.tag[i].name,
-                    nameSpace : app.name + "." + splittedPath[5] + "." + xmlContent.tag[i].name.replaceAll(" ","_")
+                    nameSpace : app.name + "." + moduleName + "." + xmlContent.tag[i].name.replaceAll(" ","_")
                 })
             }
         }
