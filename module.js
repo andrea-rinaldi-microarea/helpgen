@@ -4,7 +4,6 @@ const path = require('path');
 const fs = require('fs');
 const markdown = require('./markdown');
 const notifications = require('./notifications');
-const chalk = require('chalk');
 
 module.exports = function createModuleHelp(module, workingPath, outputPath) {
     process.chdir(path.join(workingPath, module.name));

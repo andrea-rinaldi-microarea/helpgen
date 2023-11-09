@@ -4,7 +4,6 @@ const fs = require('fs');
 const glob = require('glob');
 const xml2js = require('xml2js');
 const _ = require('lodash');
-const { default: chalk } = require('chalk');
 
 module.exports =  {
     

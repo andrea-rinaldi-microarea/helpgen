@@ -9,7 +9,7 @@ const createAppHelp = require('./application');
 
 const assets = path.join(path.dirname(require.main.filename), 'assets');
 
-console.log(chalk.cyan(chalk.bold('WELCOME TO THE MAGOCLOUD HELP PAGES GENERATOR!\n')));
+console.log(chalk.bold(chalk.cyan('WELCOME TO THE MAGOCLOUD HELP PAGES GENERATOR!\n')));
 
 var workingPath = null;
 const cmdArgs = process.argv.slice(2);
