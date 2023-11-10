@@ -20,7 +20,7 @@ module.exports = function createModuleHelp(module, workingPath, outputPath) {
 
     if (metadata.isArray(module.dbObjects.tables)) {
         mergeDBInfoData(module.dbObjects);
-        createHelpFile(outputPath, module);
+        createHelpFile(outputPath, module,workingPath);
 
         return true;
     }
@@ -28,7 +28,7 @@ module.exports = function createModuleHelp(module, workingPath, outputPath) {
 }
 
 //=============================================================================
-function createHelpFile(outputPath, module) {
+function createHelpFile(outputPath, module, workingPath) {
     var content = `[H2 ${module.appName}-${module.name}]${module.localize}\n`
 
     content += `Go to the tables : [LINK ${module.appName}-${module.name}-Tables Tables]\n\n`
@@ -48,7 +48,26 @@ function createHelpFile(outputPath, module) {
     content += markdown.gridRender(gridContent,{ forceTableNewLines : true });
 
     module.dbObjects.tables.table.forEach(table => {
-        content += createTableDescription(table);
+        var lsFieldsXReferences = [];
+        var fileNameRef = path.join(workingPath,module.name,"ModuleObjects","DBInfo",metadata.objectName(table.namespace) + '.xml')
+
+        if(fs.existsSync(fileNameRef))
+        {
+            var xmlTableRef = metadata.parseXML(fileNameRef);
+            if(xmlTableRef != undefined) {
+
+                if(!!xmlTableRef.fields && !!xmlTableRef.fields.column && 
+                   !!xmlTableRef.fields && !!xmlTableRef.fields.column)
+                {
+                    for(let i = 0; i < xmlTableRef.fields.column.length; i ++) {
+                        if(xmlTableRef.fields.column[i].Reference != '')
+                          lsFieldsXReferences.push({ name : xmlTableRef.fields.column[i].Name, reference : xmlTableRef.fields.column[i].Reference})
+                    }
+                }
+            }
+        }
+
+        content += createTableDescription(table,lsFieldsXReferences);
     });
 
     content += `\n[H3 ${module.appName}-${module.name}-Enumerations]Enumerations`
@@ -112,7 +131,7 @@ function createHelpFile(outputPath, module) {
 }
 
 //=============================================================================
-function createTableDescription(table) {
+function createTableDescription(table,lsReferecences) {
     var content = `[H4 ${metadata.dashed(metadata.compact(table.namespace))}]${metadata.objectName(table.namespace)}\n`;
 
     content += "[H5] Base Info\n";
@@ -177,6 +196,14 @@ function createTableDescription(table) {
                        theExternalTable = objForeignKeys.externalTable
                        break;
                     }
+            }
+
+            for(let i = 0; i < lsReferecences.length; i ++) {
+                if(theExternalTable == '' && lsReferecences[i].name == column.schemainfo.content && !!lsReferecences[i].reference)
+                {
+                   theExternalTable = lsReferecences[i].reference
+                   break;
+                }
             }
 
             gridContent.push([

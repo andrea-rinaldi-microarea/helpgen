@@ -6,6 +6,7 @@ const path = require('path');
 const fs = require('fs');
 const metadata = require('./metadata');
 const createAppHelp = require('./application');
+const fsStuff = require('./fs-stuff'); 
 
 const assets = path.join(path.dirname(require.main.filename), 'assets');
 
@@ -13,6 +14,12 @@ console.log(chalk.bold(chalk.cyan('WELCOME TO THE MAGOCLOUD HELP PAGES GENERATOR
 
 var workingPath = null;
 const cmdArgs = process.argv.slice(2);
+
+fsStuff.rimraf(cmdArgs[0]);
+fs.mkdirSync(cmdArgs[0]);
+
+fsStuff.rimraf("C:\\helpgenoutput");
+fs.mkdirSync("C:\\helpgenoutput");
 
 if (cmdArgs.length < 1) {
     notifications.error("Usage: helpgen <output> [input path]\nAt least the output path must be specified.");
@@ -40,7 +47,7 @@ var appNames = metadata.scanFor('Application.config');
 console.log(chalk.bold('APPLICATIONS :'));
 console.log(appNames);
 
-console.log(chalk.bold(chalk.cyan('\n...GENERATION STARTED...\n')));
+console.log(chalk.bold(chalk.cyan('\n...GENERATION STARTED...')));
 
 console.log(chalk.bold(chalk.cyan('\n...CHECK FOR ENUMERATIONS...\n')));
 
@@ -71,11 +78,12 @@ for(let i = 0; i < enumsFileLs.length; i ++) {
     }
 }
 
-console.log(chalk.bold(chalk.cyan('\n...ENUMERATIONS ELABORATED SUCCESSFULLY...\n')));
+console.log(chalk.bold(chalk.cyan('\n...ENUMERATIONS ELABORATED SUCCESSFULLY...')));
 console.log(chalk.bold(chalk.cyan('\n...APPLICATION GENERATION STARTED...\n')));
 
 apps = [];
 appNames.forEach(appName => {
+    if(appName != 'ERP') return
     app = {name: appName};
     if (createAppHelp(app, workingPath, outputPath)) {
         apps.push(app);
