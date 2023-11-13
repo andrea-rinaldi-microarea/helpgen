@@ -7,6 +7,7 @@ const fs = require('fs');
 const metadata = require('./metadata');
 const createAppHelp = require('./application');
 const fsStuff = require('./fs-stuff'); 
+const searchRecursiveFileByName = require('./searchFile');
 
 const assets = path.join(path.dirname(require.main.filename), 'assets');
 
@@ -49,7 +50,7 @@ console.log(appNames);
 
 console.log(chalk.bold(chalk.cyan('\n...GENERATION STARTED...')));
 
-console.log(chalk.bold(chalk.cyan('\n...CHECK FOR ENUMERATIONS...\n')));
+/*console.log(chalk.bold(chalk.cyan('\n...CHECK FOR ENUMERATIONS...\n')));
 
 var enumsFileLs = searchRecursiveFileByName(workingPath, 'Enums.xml');
 
@@ -76,7 +77,7 @@ for(let i = 0; i < enumsFileLs.length; i ++) {
             })
         }
     }
-}
+}*/
 
 console.log(chalk.bold(chalk.cyan('\n...ENUMERATIONS ELABORATED SUCCESSFULLY...')));
 console.log(chalk.bold(chalk.cyan('\n...APPLICATION GENERATION STARTED...\n')));
@@ -106,27 +107,6 @@ fs.cp(path.join(path.dirname(require.main.filename), '_mago_styles'), path.join(
   });
 
 console.log(chalk.bold(chalk.cyan('\n...GENERATION COMPLETED!')));
-
-//=============================================================================
-function searchRecursiveFileByName (dir, pattern) {
-    var results = [];
-  
-    fs.readdirSync(dir).forEach(function (dirInner){
-      dirInner = path.resolve(dir, dirInner);
-  
-      var stat = fs.statSync(dirInner);
-  
-      if (stat.isDirectory()) {
-        results = results.concat(searchRecursiveFileByName(dirInner, pattern));
-      }
-  
-      if (stat.isFile() && dirInner.endsWith(pattern)) {
-        results.push(dirInner);
-      }
-    });  
-
-    return results;
-};
 
 //=============================================================================
 function copyAsset(assetName, source, destination, process = null) {

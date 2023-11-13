@@ -32,7 +32,9 @@ function createHelpFile(outputPath, module, workingPath) {
     var content = `[H2 ${module.appName}-${module.name}]${module.localize}\n`
 
     content += `Go to the tables : [LINK ${module.appName}-${module.name}-Tables Tables]\n\n`
-    content += `Go to the enumerations : [LINK ${module.appName}-${module.name}-Enumerations Enumerations]\n`
+    content += `Go to the enumerations : [LINK ${module.appName}-${module.name}-Enumerations Enumerations]\n\n`
+    content += `Go to the documents : [LINK ${module.appName}-${module.name}-Documents Documents]\n`
+
     content += `[H3 ${module.appName}-${module.name}-Tables]Tables\n`
 
     content += `\nHere the **${module.localize}** tables:\n\n`;
@@ -90,7 +92,7 @@ function createHelpFile(outputPath, module, workingPath) {
                 var contentString = "";
 
                 if(xmlContent.tag[i].content != undefined)
-                contentString = xmlContent.tag[i].content.trim();
+                    contentString = xmlContent.tag[i].content.trim();
         
                 lsEnum.push({
                     description : contentString,
@@ -122,6 +124,98 @@ function createHelpFile(outputPath, module, workingPath) {
     } else {
         content += "\n_/There aren't enumerations for this module yet!/_"
     }
+
+    content += `\n[H3 ${module.appName}-${module.name}-Documents]Documents`
+
+    if (fs.existsSync(path.join('ModuleObjects', 'DocumentObjects.xml'))){
+        var xmlContent = metadata.parseXML(path.join('ModuleObjects', 'DocumentObjects.xml'));
+
+        if(xmlContent.documents != undefined) {
+            content += `\nHere the **${module.localize}** documents:\n\n`;
+
+            if(!metadata.isArray(xmlContent)) {
+                var tmpContent = JSON.parse(JSON.stringify(xmlContent)).documents.document
+                if(Array.isArray(tmpContent)){
+                    xmlContent = { documents : tmpContent };
+                } else {
+                    xmlContent = { documents : [] };
+                    xmlContent.documents.push(tmpContent)
+                }
+            }
+        
+            var lsDocs = [];
+            for(let i = 0;i < xmlContent.documents.length; i ++ ) {
+                if(xmlContent.documents[i] == undefined)
+                   continue;
+                
+                if(xmlContent.documents[i].viewmodes == undefined || xmlContent.documents[i].viewmodes.mode[0] == undefined || xmlContent.documents[i].viewmodes.mode[0].type == undefined)
+                {
+                    if(xmlContent.documents[i].classhierarchy != undefined) {
+                       var hierarchy = xmlContent.documents[i].classhierarchy.split(".")
+                       var theWrapperClass = hierarchy[hierarchy.length - 1]
+                    }
+
+                    var nameOfDoc = xmlContent.documents[i].namespace.split('.')
+                    var pathOfFile = path.join('ModuleObjects', nameOfDoc[nameOfDoc.length - 1], 'Description', 'Dbts.xml')
+
+                    var sectionRowLs = [];
+
+                    if (fs.existsSync(pathOfFile)){
+                        var xmlContentSection = metadata.parseXML(pathOfFile);
+                        var splittedTableNamespace = xmlContentSection.master.table.namespace.split(".")
+                        splittedTableNamespace = splittedTableNamespace.filter(item => item !== 'Dbl');
+                        xmlContentSection.master.table.namespace = splittedTableNamespace.join('.');
+                        
+                        if(xmlContentSection.master != undefined) {       
+                            var rowSection = {
+                             type : "M",
+                             section : xmlContentSection.master.title,
+                             nameSpaceDbt : xmlContentSection.master.namespace,
+                             dbTableAndNameSpace : xmlContentSection.master.table,
+                             description : ""
+                           }
+                           sectionRowLs.push(rowSection)
+
+                           if(xmlContentSection.master.slaves != undefined) {
+
+                           }
+
+                        }                        
+                    }
+    
+                    lsDocs.push({
+                        name : xmlContent.documents[i].localize,
+                        nameSpace : module.appName + "." + module.name + ".doc_" + xmlContent.documents[i].localize.replaceAll(" ","_"),
+                        realNameSpace : xmlContent.documents[i].namespace,
+                        interfaceClass : xmlContent.documents[i].interfaceclass,
+                        classHierarchy : xmlContent.documents[i].classhierarchy != undefined ? xmlContent.documents[i].classhierarchy : '',
+                        wrapperClass : theWrapperClass,
+                        sections : sectionRowLs 
+                    })
+                }
+            }
+            
+            var gridContent = [["Document name"]];
+        
+            lsDocs.forEach(element => {
+                    gridContent.push(
+                                        [`[LINK ${metadata.dashed(metadata.compact(element.nameSpace))} ${element.name}]`]
+                                    );
+            });
+            content += markdown.gridRender(gridContent,{ forceTableNewLines : true });
+
+            lsDocs.forEach(element => {
+                content += createDocDescription(element);
+            });
+
+         }
+         else {
+            content += "\n_/There aren't documents for this module yet!/_"
+         }
+    }
+    else {
+        content += "\n_/There aren't documents for this module yet!/_"
+     }
 
     try {
         fs.writeFileSync(path.join(outputPath + '\\Modules', `${module.name}_tables.sam`), content);
@@ -252,6 +346,42 @@ function createEnumDescription(enumeration) {
         rowArray.push(`{${enumeration.value}:${enumeration.itemLs[i].value}}`)
         rowArray.push(enumeration.itemLs[i].stored)
         rowArray.push(enumeration.itemLs[i].description != undefined ? enumeration.itemLs[i].description : "")
+        
+        gridContent.push(rowArray)
+    }
+
+    content += markdown.gridRender(gridContent, { allLines: true });
+
+    return content;
+}
+
+//=============================================================================
+function createDocDescription(doc) {
+
+    var content = `[H4 ${metadata.dashed(metadata.compact(doc.nameSpace))}]${doc.name}\n`;
+
+    content += "[H5] Base Info\n";
+
+    var gridInfo = []
+    gridInfo.push(["NameSpace",doc.realNameSpace])
+    gridInfo.push(["Description",doc.name])
+    gridInfo.push(["Wrapper Class",doc.wrapperClass])
+    gridInfo.push(["ADM Interface Class",doc.interfaceClass])
+
+    content += markdown.gridRender(gridInfo, { allLines: true });
+
+    content += "[H5] Sections\n";
+
+    gridContent = [["Type", "Section", "DBT Namespace", "DB Table", "Description"]];
+
+    for(let i = 0; i < doc.sections.length; i ++) {
+        var rowArray = [];
+        
+        rowArray.push(doc.sections[i].type)
+        rowArray.push(doc.sections[i].section.content)
+        rowArray.push(doc.sections[i].nameSpaceDbt)
+        rowArray.push(`[LINK ${metadata.dashed(metadata.compact(doc.sections[i].dbTableAndNameSpace.namespace))} ${doc.sections[i].dbTableAndNameSpace.content}]`)
+        rowArray.push("")
         
         gridContent.push(rowArray)
     }

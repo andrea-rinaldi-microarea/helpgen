@@ -9,6 +9,8 @@ module.exports =  {
     
     currentApplicationEnumLs : [],
 
+    currentAModuleDocLs : [],
+
     //=============================================================================
     scanFor(markerFile) {
         var folders = [];
