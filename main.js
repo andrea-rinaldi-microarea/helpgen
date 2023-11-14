@@ -50,11 +50,11 @@ console.log(appNames);
 
 console.log(chalk.bold(chalk.cyan('\n...GENERATION STARTED...')));
 
-/*console.log(chalk.bold(chalk.cyan('\n...CHECK FOR ENUMERATIONS...\n')));
+console.log(chalk.bold(chalk.cyan('\n...CHECK FOR ENUMERATIONS...\n')));
 
 var enumsFileLs = searchRecursiveFileByName(workingPath, 'Enums.xml');
 
-metadata.currentApplicationEnumLs = []
+metadata.allApplicationsEnumLs = []
 
 for(let i = 0; i < enumsFileLs.length; i ++) {
     var splittedPath = enumsFileLs[i].split("\\");
@@ -71,20 +71,90 @@ for(let i = 0; i < enumsFileLs.length; i ++) {
         var moduleName = splittedPath[splittedPath.findIndex((element) => element == 'Applications') + 2];
             
         for(let i = 0;i < xmlContent.tag.length; i ++ ){
-            metadata.currentApplicationEnumLs.push({
+            metadata.allApplicationsEnumLs.push({
                 name : xmlContent.tag[i].name,
                 nameSpace : appName + "." + moduleName + "." + xmlContent.tag[i].name.replaceAll(" ","_")
             })
         }
     }
-}*/
+}
 
 console.log(chalk.bold(chalk.cyan('\n...ENUMERATIONS ELABORATED SUCCESSFULLY...')));
+
+console.log(chalk.bold(chalk.cyan('\n...CHECK FOR DOCUMENTS...\n')));
+
+var docFileLs = searchRecursiveFileByName(workingPath, 'DocumentObjects.xml');
+
+metadata.allApplicationsDocLs = []
+
+for(let i = 0; i < docFileLs.length; i ++) {
+    var splittedPath = docFileLs[i].split("\\");
+    var xmlContent = metadata.parseXML(docFileLs[i]);
+
+    var xmlContent = metadata.parseXML(docFileLs[i]);
+
+    if(xmlContent.documents != undefined) {
+        if(!metadata.isArray(xmlContent)) {
+            var tmpContent = JSON.parse(JSON.stringify(xmlContent)).documents.document
+            if(Array.isArray(tmpContent)) {
+                xmlContent = { documents : tmpContent };
+            } else {
+                xmlContent = { documents : [] };
+                xmlContent.documents.push(tmpContent)
+            }
+        }
+
+        var appName = splittedPath[splittedPath.findIndex((element) => element == 'Applications') + 1]
+        var moduleName = splittedPath[splittedPath.findIndex((element) => element == 'Applications') + 2];
+    
+        for(let i = 0;i < xmlContent.documents.length; i ++ ) {
+
+            if(xmlContent.documents[i] == undefined)
+               continue;
+
+            if(xmlContent.documents[i].viewmodes == undefined || xmlContent.documents[i].viewmodes.mode[0] == undefined || xmlContent.documents[i].viewmodes.mode[0].type == undefined) {
+                var nameOfDoc = xmlContent.documents[i].namespace.split('.')
+                var pathOfFile = path.join(appName,moduleName,'ModuleObjects', nameOfDoc[nameOfDoc.length - 1], 'Description', 'Dbts.xml')
+
+                if (fs.existsSync(pathOfFile)) {
+                    var xmlContentSection = metadata.parseXML(pathOfFile);
+                    var splittedTableNamespace = xmlContentSection.master.table.namespace.split(".")
+                    splittedTableNamespace = splittedTableNamespace.filter(item => item !== 'Dbl');
+                    xmlContentSection.master.table.namespace = splittedTableNamespace.join('.');
+
+                    var lsTablesTmp = [xmlContentSection.master.table.content]
+
+                    if(xmlContentSection.master.slaves != undefined && xmlContentSection.master.slaves.slavebuffered != undefined) {
+                        if(!Array.isArray(xmlContentSection.master.slaves.slavebuffered)) {
+                            var tmpSlave = JSON.parse(JSON.stringify(xmlContentSection.master.slaves.slavebuffered))
+                            xmlContentSection.master.slaves.slavebuffered = []
+                            xmlContentSection.master.slaves.slavebuffered.push(tmpSlave) 
+                        }
+
+                        for(let i = 0; i < xmlContentSection.master.slaves.slavebuffered.length; i ++) {
+                            lsTablesTmp.push(xmlContentSection.master.slaves.slavebuffered[i].table.content)
+                        }
+                    }
+
+                     
+                    
+                    metadata.allApplicationsDocLs.push({
+                        lsTables : lsTablesTmp,
+                        documentLink : `[LINK ${metadata.dashed(metadata.compact(appName + "." + moduleName + ".doc_" + xmlContent.documents[i].localize.replaceAll(" ","_")))} ${xmlContentSection.master.namespace}]`
+                    })
+                }
+            }
+        }
+    }
+}
+
+console.log(chalk.bold(chalk.cyan('\n...DOCUMENTS ELABORATED SUCCESSFULLY...')));
+
 console.log(chalk.bold(chalk.cyan('\n...APPLICATION GENERATION STARTED...\n')));
 
 apps = [];
 appNames.forEach(appName => {
-    if(appName != 'ERP') return
+    //if(appName != 'CRMConnector') return
     app = {name: appName};
     if (createAppHelp(app, workingPath, outputPath)) {
         apps.push(app);

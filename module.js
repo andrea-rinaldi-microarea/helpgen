@@ -31,50 +31,124 @@ module.exports = function createModuleHelp(module, workingPath, outputPath) {
 function createHelpFile(outputPath, module, workingPath) {
     var content = `[H2 ${module.appName}-${module.name}]${module.localize}\n`
 
-    content += `Go to the tables : [LINK ${module.appName}-${module.name}-Tables Tables]\n\n`
+    content += `Go to the documents : [LINK ${module.appName}-${module.name}-Documents Documents]\n\n`
     content += `Go to the enumerations : [LINK ${module.appName}-${module.name}-Enumerations Enumerations]\n\n`
-    content += `Go to the documents : [LINK ${module.appName}-${module.name}-Documents Documents]\n`
+    content += `Go to the tables : [LINK ${module.appName}-${module.name}-Tables Tables]\n\n`
 
-    content += `[H3 ${module.appName}-${module.name}-Tables]Tables\n`
+    content += `\n[H3 ${module.appName}-${module.name}-Documents]Documents`
 
-    content += `\nHere the **${module.localize}** tables:\n\n`;
+    if (fs.existsSync(path.join('ModuleObjects', 'DocumentObjects.xml'))) {
 
-    var gridContent = [["Table name", "Description"]];
-    module.dbObjects.tables.table.forEach(table => {
-        if (!metadata.defined(table.localize)) table.localize = "";
-            gridContent.push(
-                                [`[LINK ${metadata.dashed(metadata.compact(table.namespace))} ${metadata.objectName(table.namespace)}]`, 
-                                markdown.adjust(table.localize)]
-                            );
-    });
-    content += markdown.gridRender(gridContent,{ forceTableNewLines : true });
+        var xmlContent = metadata.parseXML(path.join('ModuleObjects', 'DocumentObjects.xml'));
 
-    module.dbObjects.tables.table.forEach(table => {
-        var lsFieldsXReferences = [];
-        var fileNameRef = path.join(workingPath,module.name,"ModuleObjects","DBInfo",metadata.objectName(table.namespace) + '.xml')
+        if(xmlContent.documents != undefined) {
+            if(!metadata.isArray(xmlContent)) {
+                var tmpContent = JSON.parse(JSON.stringify(xmlContent)).documents.document
+                if(Array.isArray(tmpContent)) {
+                    xmlContent = { documents : tmpContent };
+                } else {
+                    xmlContent = { documents : [] };
+                    xmlContent.documents.push(tmpContent)
+                }
+            }
+        
+            var lsDocs = [];
 
-        if(fs.existsSync(fileNameRef))
-        {
-            var xmlTableRef = metadata.parseXML(fileNameRef);
-            if(xmlTableRef != undefined) {
+            for(let i = 0;i < xmlContent.documents.length; i ++ ) {
 
-                if(!!xmlTableRef.fields && !!xmlTableRef.fields.column && 
-                   !!xmlTableRef.fields && !!xmlTableRef.fields.column)
-                {
-                    for(let i = 0; i < xmlTableRef.fields.column.length; i ++) {
-                        if(xmlTableRef.fields.column[i].Reference != '')
-                          lsFieldsXReferences.push({ name : xmlTableRef.fields.column[i].Name, reference : xmlTableRef.fields.column[i].Reference})
+                if(xmlContent.documents[i] == undefined)
+                   continue;
+
+                if(xmlContent.documents[i].viewmodes == undefined || xmlContent.documents[i].viewmodes.mode[0] == undefined || xmlContent.documents[i].viewmodes.mode[0].type == undefined) {
+                    var theWrapperClass = ''
+                    if(xmlContent.documents[i].classhierarchy != undefined) {
+                        var hierarchy = xmlContent.documents[i].classhierarchy.split(".")
+                        theWrapperClass = hierarchy[hierarchy.length - 1]
+                    }
+
+                    var nameOfDoc = xmlContent.documents[i].namespace.split('.')
+                    var pathOfFile = path.join('ModuleObjects', nameOfDoc[nameOfDoc.length - 1], 'Description', 'Dbts.xml')
+
+                    var sectionRowLs = [];
+
+                    if (fs.existsSync(pathOfFile)) {
+                        var xmlContentSection = metadata.parseXML(pathOfFile);
+                        var splittedTableNamespace = xmlContentSection.master.table.namespace.split(".")
+                        splittedTableNamespace = splittedTableNamespace.filter(item => item !== 'Dbl');
+                        xmlContentSection.master.table.namespace = splittedTableNamespace.join('.');
+                        
+                        if(xmlContentSection.master != undefined) {       
+                            var rowSection = {
+                            type : "M",
+                            section : xmlContentSection.master.title,
+                            nameSpaceDbt : xmlContentSection.master.namespace,
+                            dbTableAndNameSpace : xmlContentSection.master.table,
+                            description : ""
+                            }
+
+                            sectionRowLs.push(rowSection)
+
+                            if(xmlContentSection.master.slaves != undefined && xmlContentSection.master.slaves.slavebuffered != undefined) {
+                                if(!Array.isArray(xmlContentSection.master.slaves.slavebuffered)) {
+                                    var tmpSlave = JSON.parse(JSON.stringify(xmlContentSection.master.slaves.slavebuffered))
+                                    xmlContentSection.master.slaves.slavebuffered = []
+                                    xmlContentSection.master.slaves.slavebuffered.push(tmpSlave) 
+                                }
+
+                                for(let i = 0; i < xmlContentSection.master.slaves.slavebuffered.length; i ++) {
+                                    var rowSection = {
+                                        type : "SB",
+                                        section : xmlContentSection.master.slaves.slavebuffered[i].title,
+                                        nameSpaceDbt : xmlContentSection.master.slaves.slavebuffered[i].namespace,
+                                        dbTableAndNameSpace : xmlContentSection.master.slaves.slavebuffered[i].table,
+                                        description : ""
+                                    }
+                                    sectionRowLs.push(rowSection)
+                                }
+                            }
+
+                            lsDocs.push({
+                                name : xmlContent.documents[i].localize,
+                                nameSpace : module.appName + "." + module.name + ".doc_" + xmlContent.documents[i].localize.replaceAll(" ","_"),
+                                realNameSpace : xmlContent.documents[i].namespace,
+                                interfaceClass : xmlContent.documents[i].interfaceclass,
+                                classHierarchy : xmlContent.documents[i].classhierarchy != undefined ? xmlContent.documents[i].classhierarchy : '',
+                                wrapperClass : theWrapperClass,
+                                sections : sectionRowLs 
+                            })
+                        } 
                     }
                 }
             }
-        }
 
-        content += createTableDescription(table,lsFieldsXReferences);
-    });
+            if(lsDocs.length > 0) {
+                content += `\nHere the **${module.localize}** documents:\n\n`;
+
+                var gridContent = [["Document name"]];
+                
+                lsDocs.forEach(element => {
+                        gridContent.push(
+                                            [`[LINK ${metadata.dashed(metadata.compact(element.nameSpace))} ${element.name}]`]
+                                        );
+                });
+                content += markdown.gridRender(gridContent,{ forceTableNewLines : true });
+    
+                lsDocs.forEach(element => {
+                    content += createDocDescription(element);
+                });
+            } else {
+                content += "\n_/There aren't documents for this module yet!/_"
+            }
+        } else {
+            content += "\n_/There aren't documents for this module yet!/_"
+        }
+    } else {
+        content += "\n_/There aren't documents for this module yet!/_"
+    }
 
     content += `\n[H3 ${module.appName}-${module.name}-Enumerations]Enumerations`
     
-    if (fs.existsSync(path.join('ModuleObjects', 'Enums.xml'))){
+    if (fs.existsSync(path.join('ModuleObjects', 'Enums.xml'))) {
         var xmlContent = metadata.parseXML(path.join('ModuleObjects', 'Enums.xml'));
 
         if(xmlContent.tag != undefined){
@@ -125,97 +199,42 @@ function createHelpFile(outputPath, module, workingPath) {
         content += "\n_/There aren't enumerations for this module yet!/_"
     }
 
-    content += `\n[H3 ${module.appName}-${module.name}-Documents]Documents`
+    content += `\n[H3 ${module.appName}-${module.name}-Tables]Tables`
 
-    if (fs.existsSync(path.join('ModuleObjects', 'DocumentObjects.xml'))){
-        var xmlContent = metadata.parseXML(path.join('ModuleObjects', 'DocumentObjects.xml'));
+    content += `\nHere the **${module.localize}** tables:\n\n`;
 
-        if(xmlContent.documents != undefined) {
-            content += `\nHere the **${module.localize}** documents:\n\n`;
+    var gridContent = [["Table name", "Description"]];
+    module.dbObjects.tables.table.forEach(table => {
+        if (!metadata.defined(table.localize)) table.localize = "";
+            gridContent.push(
+                                [`[LINK ${metadata.dashed(metadata.compact(table.namespace))} ${metadata.objectName(table.namespace)}]`, 
+                                markdown.adjust(table.localize)]
+                            );
+    });
+    content += markdown.gridRender(gridContent,{ forceTableNewLines : true });
 
-            if(!metadata.isArray(xmlContent)) {
-                var tmpContent = JSON.parse(JSON.stringify(xmlContent)).documents.document
-                if(Array.isArray(tmpContent)){
-                    xmlContent = { documents : tmpContent };
-                } else {
-                    xmlContent = { documents : [] };
-                    xmlContent.documents.push(tmpContent)
-                }
-            }
-        
-            var lsDocs = [];
-            for(let i = 0;i < xmlContent.documents.length; i ++ ) {
-                if(xmlContent.documents[i] == undefined)
-                   continue;
-                
-                if(xmlContent.documents[i].viewmodes == undefined || xmlContent.documents[i].viewmodes.mode[0] == undefined || xmlContent.documents[i].viewmodes.mode[0].type == undefined)
+    module.dbObjects.tables.table.forEach(table => {
+        var lsFieldsXReferences = [];
+        var fileNameRef = path.join(workingPath,module.name,"ModuleObjects","DBInfo",metadata.objectName(table.namespace) + '.xml')
+
+        if(fs.existsSync(fileNameRef))
+        {
+            var xmlTableRef = metadata.parseXML(fileNameRef);
+            if(xmlTableRef != undefined) {
+
+                if(!!xmlTableRef.fields && !!xmlTableRef.fields.column && 
+                   !!xmlTableRef.fields && !!xmlTableRef.fields.column)
                 {
-                    if(xmlContent.documents[i].classhierarchy != undefined) {
-                       var hierarchy = xmlContent.documents[i].classhierarchy.split(".")
-                       var theWrapperClass = hierarchy[hierarchy.length - 1]
+                    for(let i = 0; i < xmlTableRef.fields.column.length; i ++) {
+                        if(xmlTableRef.fields.column[i].Reference != '')
+                          lsFieldsXReferences.push({ name : xmlTableRef.fields.column[i].Name, reference : xmlTableRef.fields.column[i].Reference})
                     }
-
-                    var nameOfDoc = xmlContent.documents[i].namespace.split('.')
-                    var pathOfFile = path.join('ModuleObjects', nameOfDoc[nameOfDoc.length - 1], 'Description', 'Dbts.xml')
-
-                    var sectionRowLs = [];
-
-                    if (fs.existsSync(pathOfFile)){
-                        var xmlContentSection = metadata.parseXML(pathOfFile);
-                        var splittedTableNamespace = xmlContentSection.master.table.namespace.split(".")
-                        splittedTableNamespace = splittedTableNamespace.filter(item => item !== 'Dbl');
-                        xmlContentSection.master.table.namespace = splittedTableNamespace.join('.');
-                        
-                        if(xmlContentSection.master != undefined) {       
-                            var rowSection = {
-                             type : "M",
-                             section : xmlContentSection.master.title,
-                             nameSpaceDbt : xmlContentSection.master.namespace,
-                             dbTableAndNameSpace : xmlContentSection.master.table,
-                             description : ""
-                           }
-                           sectionRowLs.push(rowSection)
-
-                           if(xmlContentSection.master.slaves != undefined) {
-
-                           }
-
-                        }                        
-                    }
-    
-                    lsDocs.push({
-                        name : xmlContent.documents[i].localize,
-                        nameSpace : module.appName + "." + module.name + ".doc_" + xmlContent.documents[i].localize.replaceAll(" ","_"),
-                        realNameSpace : xmlContent.documents[i].namespace,
-                        interfaceClass : xmlContent.documents[i].interfaceclass,
-                        classHierarchy : xmlContent.documents[i].classhierarchy != undefined ? xmlContent.documents[i].classhierarchy : '',
-                        wrapperClass : theWrapperClass,
-                        sections : sectionRowLs 
-                    })
                 }
             }
-            
-            var gridContent = [["Document name"]];
-        
-            lsDocs.forEach(element => {
-                    gridContent.push(
-                                        [`[LINK ${metadata.dashed(metadata.compact(element.nameSpace))} ${element.name}]`]
-                                    );
-            });
-            content += markdown.gridRender(gridContent,{ forceTableNewLines : true });
+        }
 
-            lsDocs.forEach(element => {
-                content += createDocDescription(element);
-            });
-
-         }
-         else {
-            content += "\n_/There aren't documents for this module yet!/_"
-         }
-    }
-    else {
-        content += "\n_/There aren't documents for this module yet!/_"
-     }
+        content += createTableDescription(table,lsFieldsXReferences);
+    });
 
     try {
         fs.writeFileSync(path.join(outputPath + '\\Modules', `${module.name}_tables.sam`), content);
@@ -233,7 +252,7 @@ function createTableDescription(table,lsReferecences) {
     var gridContent = [
         ["Phisical Name",           metadata.objectName(table.namespace)],
         ["Content",                 markdown.adjust(table.localize)],
-        ["Part of the document",    partOfDocument(table.document, metadata.appName(table.namespace))]
+        ["Part of the document",    partOfDocument(table)]
     ];
     if (metadata.defined(table.reference) && table.reference != '') {
         gridContent.push(
@@ -366,7 +385,7 @@ function createDocDescription(doc) {
     gridInfo.push(["NameSpace",doc.realNameSpace])
     gridInfo.push(["Description",doc.name])
     gridInfo.push(["Wrapper Class",doc.wrapperClass])
-    gridInfo.push(["ADM Interface Class",doc.interfaceClass])
+    gridInfo.push(["ADM Interface Class",doc.interfaceClass != undefined ? doc.interfaceClass : 'N/A'])
 
     content += markdown.gridRender(gridInfo, { allLines: true });
 
@@ -414,21 +433,27 @@ function mergeDBInfoData(dbObjects) {
 }
 
 //=============================================================================
-function partOfDocument(documentList, appName) {
-    if (!metadata.defined(documentList) || documentList == "") {
-        return "N/A";
-    }
-    var documents = documentList.split(",");
-    var output="";
-    documents.forEach(document => {
-        if (document.includes('/')) {
-            output += `${appName}.${document.split('/')[0]}.${document.split('/')[1]}[BR]`;
-        } else {
-            output += `${metadata.compact(document)}[BR]`;
+function partOfDocument(table) {
+    var lsDocs = []
+    var splittedTableName = table.namespace.split('.')
+    var tableName = splittedTableName[splittedTableName.length - 1]
+
+    for(let i = 0; i < metadata.allApplicationsDocLs.length; i ++) {
+        if(metadata.allApplicationsDocLs[i].lsTables.includes(tableName)) {
+            lsDocs.push(metadata.allApplicationsDocLs[i].documentLink)
         }
-    });
+    }
+
+    if(lsDocs.length == 0)
+        return "N/A";
+
+    var output="";
+    lsDocs.forEach(document => {
+            output += `${document}[BR]`;
+    })
 
     return output;
+
 }
 
 //=============================================================================
@@ -436,10 +461,10 @@ function columnType(column) {
     if (column.schemainfo.type == "String") {
         return `String ${column.schemainfo.length}`;
     } else if (column.schemainfo.type == "Enum") {
-        if(metadata.currentApplicationEnumLs.length > 0) {
-            for(let i = 0; i < metadata.currentApplicationEnumLs.length; i ++){
-                if(metadata.currentApplicationEnumLs[i].name == column.schemainfo.enumname)
-                   return `[LINK ${metadata.dashed(metadata.compact(metadata.currentApplicationEnumLs[i].nameSpace))} ${column.schemainfo.enumname}]`
+        if(metadata.allApplicationsEnumLs.length > 0) {
+            for(let i = 0; i < metadata.allApplicationsEnumLs.length; i ++){
+                if(metadata.allApplicationsEnumLs[i].name == column.schemainfo.enumname)
+                   return `[LINK ${metadata.dashed(metadata.compact(metadata.allApplicationsEnumLs[i].nameSpace))} ${column.schemainfo.enumname}]`
             }
         } else {
             return column.schemainfo.enumname;

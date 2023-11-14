@@ -7,9 +7,9 @@ const _ = require('lodash');
 
 module.exports =  {
     
-    currentApplicationEnumLs : [],
+    allApplicationsEnumLs : [],
 
-    currentAModuleDocLs : [],
+    allApplicationsDocLs : [],
 
     //=============================================================================
     scanFor(markerFile) {
