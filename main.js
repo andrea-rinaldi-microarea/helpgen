@@ -50,7 +50,7 @@ console.log(appNames);
 
 console.log(chalk.bold(chalk.cyan('\n...GENERATION STARTED...')));
 
-console.log(chalk.bold(chalk.cyan('\n...CHECK FOR ENUMERATIONS...\n')));
+console.log(chalk.bold(chalk.cyan('\n...CHECK FOR ENUMERATIONS...')));
 
 var enumsFileLs = searchRecursiveFileByName(workingPath, 'Enums.xml');
 
@@ -81,7 +81,7 @@ for(let i = 0; i < enumsFileLs.length; i ++) {
 
 console.log(chalk.bold(chalk.cyan('\n...ENUMERATIONS ELABORATED SUCCESSFULLY...')));
 
-console.log(chalk.bold(chalk.cyan('\n...CHECK FOR DOCUMENTS...\n')));
+console.log(chalk.bold(chalk.cyan('\n...CHECK FOR DOCUMENTS...')));
 
 var docFileLs = searchRecursiveFileByName(workingPath, 'DocumentObjects.xml');
 
@@ -124,20 +124,33 @@ for(let i = 0; i < docFileLs.length; i ++) {
 
                     var lsTablesTmp = [xmlContentSection.master.table.content]
 
-                    if(xmlContentSection.master.slaves != undefined && xmlContentSection.master.slaves.slavebuffered != undefined) {
-                        if(!Array.isArray(xmlContentSection.master.slaves.slavebuffered)) {
-                            var tmpSlave = JSON.parse(JSON.stringify(xmlContentSection.master.slaves.slavebuffered))
-                            xmlContentSection.master.slaves.slavebuffered = []
-                            xmlContentSection.master.slaves.slavebuffered.push(tmpSlave) 
-                        }
+                    if(xmlContentSection.master.slaves != undefined) {
+                        if(xmlContentSection.master.slaves.slave != undefined) {
+                            if(!Array.isArray(xmlContentSection.master.slaves.slave)) {
+                                var tmpSlave = JSON.parse(JSON.stringify(xmlContentSection.master.slaves.slave))
+                                xmlContentSection.master.slaves.slave = []
+                                xmlContentSection.master.slaves.slave.push(tmpSlave) 
+                            }
 
-                        for(let i = 0; i < xmlContentSection.master.slaves.slavebuffered.length; i ++) {
-                            lsTablesTmp.push(xmlContentSection.master.slaves.slavebuffered[i].table.content)
+                            for(let i = 0; i < xmlContentSection.master.slaves.slave.length; i ++) {
+                                if(xmlContentSection.master.slaves.slave[i].table != undefined)
+                                lsTablesTmp.push(xmlContentSection.master.slaves.slave[i].table.content)
+                            }
+                        }
+                        
+                        if(xmlContentSection.master.slaves.slavebuffered != undefined) {
+                            if(!Array.isArray(xmlContentSection.master.slaves.slavebuffered)) {
+                                var tmpSlave = JSON.parse(JSON.stringify(xmlContentSection.master.slaves.slavebuffered))
+                                xmlContentSection.master.slaves.slavebuffered = []
+                                xmlContentSection.master.slaves.slavebuffered.push(tmpSlave) 
+                            }
+    
+                            for(let i = 0; i < xmlContentSection.master.slaves.slavebuffered.length; i ++) {
+                                lsTablesTmp.push(xmlContentSection.master.slaves.slavebuffered[i].table.content)
+                            }
                         }
                     }
 
-                     
-                    
                     metadata.allApplicationsDocLs.push({
                         lsTables : lsTablesTmp,
                         documentLink : `[LINK ${metadata.dashed(metadata.compact(appName + "." + moduleName + ".doc_" + xmlContent.documents[i].localize.replaceAll(" ","_")))} ${xmlContentSection.master.namespace}]`

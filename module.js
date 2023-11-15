@@ -88,24 +88,47 @@ function createHelpFile(outputPath, module, workingPath) {
 
                             sectionRowLs.push(rowSection)
 
-                            if(xmlContentSection.master.slaves != undefined && xmlContentSection.master.slaves.slavebuffered != undefined) {
-                                if(!Array.isArray(xmlContentSection.master.slaves.slavebuffered)) {
-                                    var tmpSlave = JSON.parse(JSON.stringify(xmlContentSection.master.slaves.slavebuffered))
-                                    xmlContentSection.master.slaves.slavebuffered = []
-                                    xmlContentSection.master.slaves.slavebuffered.push(tmpSlave) 
-                                }
-
-                                for(let i = 0; i < xmlContentSection.master.slaves.slavebuffered.length; i ++) {
-                                    var rowSection = {
-                                        type : "SB",
-                                        section : xmlContentSection.master.slaves.slavebuffered[i].title,
-                                        nameSpaceDbt : xmlContentSection.master.slaves.slavebuffered[i].namespace,
-                                        dbTableAndNameSpace : xmlContentSection.master.slaves.slavebuffered[i].table,
-                                        description : ""
+                            if(xmlContentSection.master.slaves != undefined) {
+                                if(xmlContentSection.master.slaves.slave != undefined) {
+                                    if(!Array.isArray(xmlContentSection.master.slaves.slave)) {
+                                        var tmpSlave = JSON.parse(JSON.stringify(xmlContentSection.master.slaves.slave))
+                                        xmlContentSection.master.slaves.slave = []
+                                        xmlContentSection.master.slaves.slave.push(tmpSlave) 
                                     }
-                                    sectionRowLs.push(rowSection)
+    
+                                    for(let i = 0; i < xmlContentSection.master.slaves.slave.length; i ++) {
+                                        var rowSection = {
+                                            type : "S",
+                                            section : xmlContentSection.master.slaves.slave[i].title,
+                                            nameSpaceDbt : xmlContentSection.master.slaves.slave[i].namespace,
+                                            dbTableAndNameSpace : xmlContentSection.master.slaves.slave[i].table,
+                                            description : ""
+                                        }
+                                        sectionRowLs.push(rowSection)
+                                    }
+                                }                                
+
+                                if(xmlContentSection.master.slaves.slavebuffered != undefined) {
+                                    if(!Array.isArray(xmlContentSection.master.slaves.slavebuffered)) {
+                                        var tmpSlave = JSON.parse(JSON.stringify(xmlContentSection.master.slaves.slavebuffered))
+                                        xmlContentSection.master.slaves.slavebuffered = []
+                                        xmlContentSection.master.slaves.slavebuffered.push(tmpSlave) 
+                                    }
+    
+                                    for(let i = 0; i < xmlContentSection.master.slaves.slavebuffered.length; i ++) {
+                                        var rowSection = {
+                                            type : "SB",
+                                            section : xmlContentSection.master.slaves.slavebuffered[i].title,
+                                            nameSpaceDbt : xmlContentSection.master.slaves.slavebuffered[i].namespace,
+                                            dbTableAndNameSpace : xmlContentSection.master.slaves.slavebuffered[i].table,
+                                            description : ""
+                                        }
+                                        sectionRowLs.push(rowSection)
+                                    }
                                 }
                             }
+
+
 
                             lsDocs.push({
                                 name : xmlContent.documents[i].localize,
