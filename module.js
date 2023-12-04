@@ -31,14 +31,14 @@ module.exports = function createModuleHelp(module, workingPath, outputPath) {
 function createHelpFile(outputPath, module, workingPath) {
     var content = `[H2 ${module.appName}-${module.name}]${module.localize}\n`
 
-    content += `Go to the documents : [LINK ${module.appName}-${module.name}-Documents Documents]\n\n`
-    content += `Go to the enumerations : [LINK ${module.appName}-${module.name}-Enumerations Enumerations]\n\n`
-    content += `Go to the tables : [LINK ${module.appName}-${module.name}-Tables Tables]\n\n`
+    content += `Click here for the documents : [LINK ${module.appName}-${module.name}-Documents DOCUMENTS]\n\n`
+    content += `Click here for the enumerations : [LINK ${module.appName}-${module.name}-Enumerations ENUMERATIONS]\n\n`
+    content += `Click here for the tables : [LINK ${module.appName}-${module.name}-Tables TABLES]\n\n`
+    content += `Click here for the web methods : [LINK ${module.appName}-${module.name}-WebMethods WEBMETHODS]\n\n`
 
     content += `\n[H3 ${module.appName}-${module.name}-Documents]Documents`
 
     if (fs.existsSync(path.join('ModuleObjects', 'DocumentObjects.xml'))) {
-
         var xmlContent = metadata.parseXML(path.join('ModuleObjects', 'DocumentObjects.xml'));
 
         if(xmlContent.documents != undefined) {
@@ -79,11 +79,11 @@ function createHelpFile(outputPath, module, workingPath) {
                         
                         if(xmlContentSection.master != undefined) {       
                             var rowSection = {
-                            type : "M",
-                            section : xmlContentSection.master.title,
-                            nameSpaceDbt : xmlContentSection.master.namespace,
-                            dbTableAndNameSpace : xmlContentSection.master.table,
-                            description : ""
+                                type : "M",
+                                section : xmlContentSection.master.title,
+                                nameSpaceDbt : xmlContentSection.master.namespace,
+                                dbTableAndNameSpace : xmlContentSection.master.table,
+                                description : ""
                             }
 
                             sectionRowLs.push(rowSection)
@@ -128,11 +128,13 @@ function createHelpFile(outputPath, module, workingPath) {
                                 }
                             }
 
-
+                            var namespaceSplitted = xmlContent.documents[i].namespace.split('.')
+                            var theName = namespaceSplitted[namespaceSplitted.length - 1]
 
                             lsDocs.push({
-                                name : xmlContent.documents[i].localize,
-                                nameSpace : module.appName + "." + module.name + ".doc_" + xmlContent.documents[i].localize.replaceAll(" ","_"),
+                                description : xmlContent.documents[i].localize,
+                                name : theName,
+                                nameSpace : module.appName + "." + module.name + ".doc_" + /*xmlContent.documents[i].localize*/theName.replaceAll(" ","_"),
                                 realNameSpace : xmlContent.documents[i].namespace,
                                 interfaceClass : xmlContent.documents[i].interfaceclass,
                                 classHierarchy : xmlContent.documents[i].classhierarchy != undefined ? xmlContent.documents[i].classhierarchy : '',
@@ -147,7 +149,7 @@ function createHelpFile(outputPath, module, workingPath) {
             if(lsDocs.length > 0) {
                 content += `\nHere the **${module.localize}** documents:\n\n`;
 
-                var gridContent = [["Document name"]];
+                var gridContent = [["**Document name**"]];
                 
                 lsDocs.forEach(element => {
                         gridContent.push(
@@ -201,7 +203,8 @@ function createHelpFile(outputPath, module, workingPath) {
                 })
             }
         
-            var gridContent = [["Enumeration name", "Description"]];
+            var gridContent = [["**Enumeration name**", 
+                                "**Description**"]];
         
             lsEnum.forEach(element => {
                     gridContent.push(
@@ -226,7 +229,8 @@ function createHelpFile(outputPath, module, workingPath) {
 
     content += `\nHere the **${module.localize}** tables:\n\n`;
 
-    var gridContent = [["Table name", "Description"]];
+    var gridContent = [["**Table name**", 
+                        "**Description**"]];
     module.dbObjects.tables.table.forEach(table => {
         if (!metadata.defined(table.localize)) table.localize = "";
             gridContent.push(
@@ -259,11 +263,134 @@ function createHelpFile(outputPath, module, workingPath) {
         content += createTableDescription(table,lsFieldsXReferences);
     });
 
+    content += `\n[H3 ${module.appName}-${module.name}-WebMethods]WebMethods`
+
+    if (fs.existsSync(path.join('ModuleObjects', 'WebMethods.xml'))) {
+
+        var xmlContent = metadata.parseXML(path.join('ModuleObjects', 'WebMethods.xml'));
+
+        if(xmlContent.functions != undefined) {
+
+            if(typeof xmlContent.functions !== 'string') {
+
+                    if(!metadata.isArray(xmlContent)) {
+                        var tmpContent = JSON.parse(JSON.stringify(xmlContent)).functions.function
+                        xmlContent = { functions : [] };
+
+                        if(tmpContent.length != 0) {
+                            if(tmpContent.length > 1) {
+                            xmlContent.functions = tmpContent
+                            } else {
+                                xmlContent.functions.push(tmpContent)
+                            }
+                        }
+                    }
+
+                    if(xmlContent.functions.length > 0) {
+                        content += `\nHere the **${module.localize}** webmethods:\n\n`;
+                        
+                        var lsMethods = [];
+                    
+                        for(let i = 0;i < xmlContent.functions.length; i ++) {
+                            var contentString = "";
+
+                            if(xmlContent.functions[i].content != undefined)
+                                contentString = xmlContent.functions[i].content.trim();
+
+                            var splittedNamespace = xmlContent.functions[i].namespace.split(".")
+                            var methodName = splittedNamespace[splittedNamespace.length - 1]
+
+                            var fileInfo = xmlContent.functions[i].sourceInfo.replaceAll('File: ','')
+
+                            var librarySplitted = fileInfo.split('\\')
+                    
+                            lsMethods.push({
+                                descriptionAndReturnValue : contentString,
+                                sourceInfo : fileInfo,
+                                library : librarySplitted[0] + librarySplitted[1],
+                                paramLs : xmlContent.functions[i].param != undefined ? Array.from(xmlContent.functions[i].param) : [],
+                                availableInReport : xmlContent.functions[i].report == 'false' ? false : true,
+                                namespace : module.appName + "." + module.name + "." + methodName.replaceAll(" ","_"),
+                                name : methodName
+                            })
+                        }
+                    
+                        var gridContent = [["**WebMethod name**"]];
+                    
+                        lsMethods.forEach(element => {
+                                    gridContent.push(
+                                                        [`[LINK ${metadata.dashed(metadata.compact(element.namespace))} ${element.name}]`]
+                                                    );
+                        });
+                        content += markdown.gridRender(gridContent,{ forceTableNewLines : true });
+                        
+                        lsMethods.forEach(element => {
+                          content += createWebMethodDescription(element);
+                        })
+                    } else {
+                        content += "\n_/There aren't webMethods for this module yet!/_"
+                    } 
+
+            } else {
+                content += "\n_/There aren't webMethods for this module yet!/_"
+            }
+        } else {
+            content += "\n_/There aren't webMethods for this module yet!/_"
+        }
+    } else {
+        content += "\n_/There aren't webmethods for this module yet!/_"
+    }
+
     try {
         fs.writeFileSync(path.join(outputPath + '\\Modules', `${module.name}_tables.sam`), content);
     } catch (err) {
         notifications.error(err);
     }
+}
+
+//=============================================================================
+function createWebMethodDescription(method) {
+    var content = `[H4 ${metadata.dashed(metadata.compact(method.namespace))}]${metadata.objectName(method.namespace)}\n`;
+
+    content += "[H5] Main Info\n";
+
+    var gridContent = [
+        ["**Namespace**", metadata.objectName(method.namespace)],
+        ["**Library**", method.library],
+        ["**File of origin**", method.sourceInfo],
+        ["**Available in reports**", method.availableInReport ? 'true' : 'false']
+    ];
+
+    content += markdown.gridRender(gridContent, { allLines: true });
+
+    var splittedDescriptionAndReturnValue = method.descriptionAndReturnValue.split('\r\n')
+
+    content += "[H5] Description\n";
+    content += splittedDescriptionAndReturnValue[0] + '\n'
+
+    if(splittedDescriptionAndReturnValue[1] != undefined) {
+        content += "[H5] Return value\n";
+        content += splittedDescriptionAndReturnValue[1].replaceAll('Return value: Is', 'The return value is') + '\n'
+    }
+
+    content += "[H5] Parameters\n";
+    if (method.paramLs.length > 0) {
+        gridContent = [["**Name**", 
+                        "**Type**", 
+                        "**Mode**", 
+                         "**Description**"]];
+
+        for(let i = 0; i < method.paramLs.length; i ++) {
+            gridContent.push([method.paramLs[i].name,
+                            method.paramLs[i].type,
+                            method.paramLs[i].mode,
+                            method.paramLs[i].localize])
+        }
+    }
+
+    content += markdown.gridRender(gridContent, { allLines: true });
+
+    return content;
 }
 
 //=============================================================================
@@ -273,9 +400,9 @@ function createTableDescription(table,lsReferecences) {
     content += "[H5] Base Info\n";
 
     var gridContent = [
-        ["Phisical Name",           metadata.objectName(table.namespace)],
-        ["Content",                 markdown.adjust(table.localize)],
-        ["Part of the document",    partOfDocument(table)]
+        ["**Phisical Name**",           metadata.objectName(table.namespace)],
+        ["**Content**",                 markdown.adjust(table.localize)],
+        ["**Part of the document**",    partOfDocument(table)]
     ];
     if (metadata.defined(table.reference) && table.reference != '') {
         gridContent.push(
@@ -301,7 +428,12 @@ function createTableDescription(table,lsReferecences) {
 
     content += "[H5] Fields\n";
     if (metadata.isArray(table.columns)) {
-        gridContent = [["Name", "Type & Len", "M", "R/O", "D", "Description"]];
+        gridContent = [["**Name**", 
+                        "**Type & Len**", 
+                        "**M**", 
+                        "**R/O**", 
+                        "**D**", 
+                        "**Description**"]];
         
         if(table.foreignkeys != undefined)
         {
@@ -362,7 +494,6 @@ function createTableDescription(table,lsReferecences) {
 
 //=============================================================================
 function createEnumDescription(enumeration) {
-
     var content = `[H4 ${metadata.dashed(metadata.compact(enumeration.nameSpace))}]${enumeration.name}\n`;
 
     content += "[H5] Base Info\n";
@@ -371,7 +502,12 @@ function createEnumDescription(enumeration) {
 
     content += "[H5] Overview\n";
 
-    gridContent = [["Default", "Element", "Value", "Written as", "Db value", "Description"]];
+    gridContent = [["**Default**", 
+                    "**Element**", 
+                    "**Value**", 
+                    "**Written as**", 
+                    "**Db value**", 
+                    "**Description**"]];
         
     if((typeof enumeration.itemLs === 'array')) {
         var tmpList = JSON.parse(JSON.stringify(enumeration.itemLs))
@@ -399,22 +535,29 @@ function createEnumDescription(enumeration) {
 
 //=============================================================================
 function createDocDescription(doc) {
-
     var content = `[H4 ${metadata.dashed(metadata.compact(doc.nameSpace))}]${doc.name}\n`;
 
     content += "[H5] Base Info\n";
 
     var gridInfo = []
-    gridInfo.push(["NameSpace",doc.realNameSpace])
-    gridInfo.push(["Description",doc.name])
-    gridInfo.push(["Wrapper Class",doc.wrapperClass])
-    gridInfo.push(["ADM Interface Class",doc.interfaceClass != undefined ? doc.interfaceClass : 'N/A'])
+    gridInfo.push(["**NameSpace**",doc.realNameSpace])
+    gridInfo.push(["**Description**",doc.description])
+    gridInfo.push(["**Wrapper Class**",doc.wrapperClass])
+    gridInfo.push(["**ADM Interface Class**",doc.interfaceClass != undefined ? doc.interfaceClass : 'N/A'])
 
     content += markdown.gridRender(gridInfo, { allLines: true });
 
+    content += "[H5] Description\n"
+
+    content += doc.description + '\n'
+
     content += "[H5] Sections\n";
 
-    gridContent = [["Type", "Section", "DBT Namespace", "DB Table", "Description"]];
+    gridContent = [["**Type**", 
+                    "**Section**", 
+                    "**DBT Namespace**", 
+                    "**DB Table**", 
+                    "**Description**"]];
 
     for(let i = 0; i < doc.sections.length; i ++) {
         var rowArray = [];

@@ -167,7 +167,7 @@ console.log(chalk.bold(chalk.cyan('\n...APPLICATION GENERATION STARTED...\n')));
 
 apps = [];
 appNames.forEach(appName => {
-    //if(appName != 'CRMConnector') return
+    if(appName != 'ERP') return
     app = {name: appName};
     if (createAppHelp(app, workingPath, outputPath)) {
         apps.push(app);
