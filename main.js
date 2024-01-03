@@ -76,7 +76,7 @@ for(let i = 0; i < enumsFileLs.length; i ++) {
                 nameSpace : appName + "." + moduleName + "." + xmlContent.tag[i].name.replaceAll(" ","_")
             })
         }
-    }
+    }                       
 }
 
 console.log(chalk.bold(chalk.cyan('\n...ENUMERATIONS ELABORATED SUCCESSFULLY...')));
@@ -167,7 +167,7 @@ console.log(chalk.bold(chalk.cyan('\n...APPLICATION GENERATION STARTED...\n')));
 
 apps = [];
 appNames.forEach(appName => {
-    if(appName != 'ERP') return
+    //if(appName != 'ERP') return
     app = {name: appName};
     if (createAppHelp(app, workingPath, outputPath)) {
         apps.push(app);
