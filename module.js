@@ -31,12 +31,12 @@ module.exports = function createModuleHelp(module, workingPath, outputPath) {
 function createHelpFile(outputPath, module, workingPath) {
     var content = `[H2 ${module.appName}-${module.name}]${module.localize}\n`
 
-    content += `Click here for the documents : [LINK ${module.appName}-${module.name}-Documents DOCUMENTS]\n\n`
-    content += `Click here for the enumerations : [LINK ${module.appName}-${module.name}-Enumerations ENUMERATIONS]\n\n`
-    content += `Click here for the tables : [LINK ${module.appName}-${module.name}-Tables TABLES]\n\n`
-    content += `Click here for the web methods : [LINK ${module.appName}-${module.name}-WebMethods WEBMETHODS]\n\n`
+    content += `Click here for the documents : [LINK refGuide-${module.appName}-${module.name}-Documents DOCUMENTS]\n\n`
+    content += `Click here for the enumerations : [LINK refGuide-${module.appName}-${module.name}-Enumerations ENUMERATIONS]\n\n`
+    content += `Click here for the tables : [LINK refGuide-${module.appName}-${module.name}-Tables TABLES]\n\n`
+    content += `Click here for the web methods : [LINK refGuide-${module.appName}-${module.name}-WebMethods WEBMETHODS]\n\n`
 
-    content += `\n[H3 ${module.appName}-${module.name}-Documents]Documents`
+    content += `\n[H3 RefGuide-${module.appName}-${module.name}-Documents]Documents`
 
     if (fs.existsSync(path.join('ModuleObjects', 'DocumentObjects.xml'))) {
         var xmlContent = metadata.parseXML(path.join('ModuleObjects', 'DocumentObjects.xml'));
@@ -74,7 +74,6 @@ function createHelpFile(outputPath, module, workingPath) {
                     if (fs.existsSync(pathOfFile)) {
                         var xmlContentSection = metadata.parseXML(pathOfFile);
                         var splittedTableNamespace = xmlContentSection.master.table.namespace.split(".")
-                        splittedTableNamespace = splittedTableNamespace.filter(item => item !== 'Dbl');
                         xmlContentSection.master.table.namespace = splittedTableNamespace.join('.');
                         
                         if(xmlContentSection.master != undefined) {       
@@ -134,7 +133,7 @@ function createHelpFile(outputPath, module, workingPath) {
                             lsDocs.push({
                                 description : xmlContent.documents[i].localize,
                                 name : theName,
-                                nameSpace : module.appName + "." + module.name + ".doc_" + /*xmlContent.documents[i].localize*/theName.replaceAll(" ","_"),
+                                nameSpace : module.appName + "." + module.name + "." + theName.replaceAll(" ","_"),
                                 realNameSpace : xmlContent.documents[i].namespace,
                                 interfaceClass : xmlContent.documents[i].interfaceclass,
                                 classHierarchy : xmlContent.documents[i].classhierarchy != undefined ? xmlContent.documents[i].classhierarchy : '',
@@ -149,11 +148,11 @@ function createHelpFile(outputPath, module, workingPath) {
             if(lsDocs.length > 0) {
                 content += `\nHere the **${module.localize}** documents:\n\n`;
 
-                var gridContent = [["**Document name**"]];
+                var gridContent = [["**Document name**"]]
                 
                 lsDocs.forEach(element => {
                         gridContent.push(
-                                            [`[LINK ${metadata.dashed(metadata.compact(element.nameSpace))} ${element.name}]`]
+                                            [`[LINK document-${metadata.dashed(element.realNameSpace)} ${element.name}]`]
                                         );
                 });
                 content += markdown.gridRender(gridContent,{ forceTableNewLines : true });
@@ -171,7 +170,7 @@ function createHelpFile(outputPath, module, workingPath) {
         content += "\n_/There aren't documents for this module yet!/_"
     }
 
-    content += `\n[H3 ${module.appName}-${module.name}-Enumerations]Enumerations`
+    content += `\n[H3 RefGuide-${module.appName}-${module.name}-Enumerations]Enumerations`
     
     if (fs.existsSync(path.join('ModuleObjects', 'Enums.xml'))) {
         var xmlContent = metadata.parseXML(path.join('ModuleObjects', 'Enums.xml'));
@@ -198,8 +197,8 @@ function createHelpFile(outputPath, module, workingPath) {
                     name : xmlContent.tag[i].name,
                     defaultValue : xmlContent.tag[i].defaultValue,
                     itemLs : Array.from(xmlContent.tag[i].item),
-                    value : xmlContent.tag[i].value,
-                    nameSpace : module.appName + "." + module.name + "." + xmlContent.tag[i].name.replaceAll(" ","_")
+                    value : xmlContent.tag[i].value, 
+                    nameSpace : module.appName + "." + module.name + "." + xmlContent.tag[i].value
                 })
             }
         
@@ -208,7 +207,7 @@ function createHelpFile(outputPath, module, workingPath) {
         
             lsEnum.forEach(element => {
                     gridContent.push(
-                                        [`[LINK ${metadata.dashed(metadata.compact(element.nameSpace))} ${element.name}]`, 
+                                        [`[LINK enum-${metadata.dashed(element.nameSpace)} ${element.name}]`, 
                                         element.description]
                                     );
             });
@@ -225,16 +224,17 @@ function createHelpFile(outputPath, module, workingPath) {
         content += "\n_/There aren't enumerations for this module yet!/_"
     }
 
-    content += `\n[H3 ${module.appName}-${module.name}-Tables]Tables`
+    content += `\n[H3 RefGuide-${module.appName}-${module.name}-Tables]Tables`
 
     content += `\nHere the **${module.localize}** tables:\n\n`;
 
     var gridContent = [["**Table name**", 
                         "**Description**"]];
+
     module.dbObjects.tables.table.forEach(table => {
         if (!metadata.defined(table.localize)) table.localize = "";
             gridContent.push(
-                                [`[LINK ${metadata.dashed(metadata.compact(table.namespace))} ${metadata.objectName(table.namespace)}]`, 
+                                [`[LINK table-${metadata.dashed(table.namespace)} ${metadata.objectName(table.namespace)}]`, 
                                 markdown.adjust(table.localize)]
                             );
     });
@@ -263,7 +263,7 @@ function createHelpFile(outputPath, module, workingPath) {
         content += createTableDescription(table,lsFieldsXReferences);
     });
 
-    content += `\n[H3 ${module.appName}-${module.name}-WebMethods]WebMethods`
+    content += `\n[H3 RefGuide-${module.appName}-${module.name}-WebMethods]WebMethods`
 
     if (fs.existsSync(path.join('ModuleObjects', 'WebMethods.xml'))) {
 
@@ -319,7 +319,7 @@ function createHelpFile(outputPath, module, workingPath) {
                     
                         lsMethods.forEach(element => {
                                     gridContent.push(
-                                                        [`[LINK ${metadata.dashed(metadata.compact(element.namespace))} ${element.name}]`]
+                                                        [`[LINK ${metadata.dashed(element.namespace)} ${element.name}]`]
                                                     );
                         });
                         content += markdown.gridRender(gridContent,{ forceTableNewLines : true });
@@ -350,7 +350,7 @@ function createHelpFile(outputPath, module, workingPath) {
 
 //=============================================================================
 function createWebMethodDescription(method) {
-    var content = `[H4 ${metadata.dashed(metadata.compact(method.namespace))}]${metadata.objectName(method.namespace)}\n`;
+    var content = `[H4 webMethod-${metadata.dashed(method.namespace)}]${metadata.objectName(method.namespace)}\n`;
 
     content += "[H5] Main Info\n";
 
@@ -395,7 +395,7 @@ function createWebMethodDescription(method) {
 
 //=============================================================================
 function createTableDescription(table,lsReferecences) {
-    var content = `[H4 ${metadata.dashed(metadata.compact(table.namespace))}]${metadata.objectName(table.namespace)}\n`;
+    var content = `[H4 table-${metadata.dashed(table.namespace)}]${metadata.objectName(table.namespace)}\n`;
 
     content += "[H5] Base Info\n";
 
@@ -406,7 +406,7 @@ function createTableDescription(table,lsReferecences) {
     ];
     if (metadata.defined(table.reference) && table.reference != '') {
         gridContent.push(
-            ["References",          `[LINK ${metadata.dashed(metadata.compact(table.reference))} ${table.namespace}]`]
+            ["References",          `[LINK ${metadata.dashed(table.reference)} ${table.namespace}]`]
         );
     }
     content += markdown.gridRender(gridContent, { allLines: true });
@@ -494,7 +494,7 @@ function createTableDescription(table,lsReferecences) {
 
 //=============================================================================
 function createEnumDescription(enumeration) {
-    var content = `[H4 ${metadata.dashed(metadata.compact(enumeration.nameSpace))}]${enumeration.name}\n`;
+    var content = `[H4 enum-${metadata.dashed(enumeration.nameSpace)}]${enumeration.name}\n`;
 
     content += "[H5] Base Info\n";
 
@@ -535,7 +535,7 @@ function createEnumDescription(enumeration) {
 
 //=============================================================================
 function createDocDescription(doc) {
-    var content = `[H4 ${metadata.dashed(metadata.compact(doc.nameSpace))}]${doc.name}\n`;
+    var content = `[H4 document-${metadata.dashed(doc.realNameSpace)}]${doc.name}\n`;
 
     content += "[H5] Base Info\n";
 
@@ -565,7 +565,7 @@ function createDocDescription(doc) {
         rowArray.push(doc.sections[i].type)
         rowArray.push(doc.sections[i].section.content)
         rowArray.push(doc.sections[i].nameSpaceDbt)
-        rowArray.push(`[LINK ${metadata.dashed(metadata.compact(doc.sections[i].dbTableAndNameSpace.namespace))} ${doc.sections[i].dbTableAndNameSpace.content}]`)
+        rowArray.push(`[LINK table-${metadata.dashed(doc.sections[i].dbTableAndNameSpace.namespace)} ${doc.sections[i].dbTableAndNameSpace.content}]`)
         rowArray.push("")
         
         gridContent.push(rowArray)
@@ -630,7 +630,7 @@ function columnType(column) {
         if(metadata.allApplicationsEnumLs.length > 0) {
             for(let i = 0; i < metadata.allApplicationsEnumLs.length; i ++){
                 if(metadata.allApplicationsEnumLs[i].name == column.schemainfo.enumname)
-                   return `[LINK ${metadata.dashed(metadata.compact(metadata.allApplicationsEnumLs[i].nameSpace))} ${column.schemainfo.enumname}]`
+                   return `[LINK enum-${metadata.dashed(metadata.allApplicationsEnumLs[i].nameSpace)} ${column.schemainfo.enumname}]`
             }
         } else {
             return column.schemainfo.enumname;
@@ -665,7 +665,7 @@ function lookup(columnName, dbInfo) {
 //=============================================================================
 function hotlink(column, appName) {
     if(appName != '') {
-       var link = `[LINK ${metadata.dashed(metadata.compact(appName))} ${column.schemainfo.content}]`
+       var link = `[LINK ${metadata.dashed(appName)} ${column.schemainfo.content}]`
        return link;
     } else {
        return column.schemainfo.content;  

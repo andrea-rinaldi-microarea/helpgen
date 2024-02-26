@@ -73,7 +73,8 @@ for(let i = 0; i < enumsFileLs.length; i ++) {
         for(let i = 0;i < xmlContent.tag.length; i ++ ){
             metadata.allApplicationsEnumLs.push({
                 name : xmlContent.tag[i].name,
-                nameSpace : appName + "." + moduleName + "." + xmlContent.tag[i].name.replaceAll(" ","_")
+                value : xmlContent.tag[i].value,
+                nameSpace : appName + "." + moduleName + "." + xmlContent.tag[i].value
             })
         }
     }                       
@@ -119,7 +120,6 @@ for(let i = 0; i < docFileLs.length; i ++) {
                 if (fs.existsSync(pathOfFile)) {
                     var xmlContentSection = metadata.parseXML(pathOfFile);
                     var splittedTableNamespace = xmlContentSection.master.table.namespace.split(".")
-                    splittedTableNamespace = splittedTableNamespace.filter(item => item !== 'Dbl');
                     xmlContentSection.master.table.namespace = splittedTableNamespace.join('.');
 
                     var lsTablesTmp = [xmlContentSection.master.table.content]
@@ -153,7 +153,7 @@ for(let i = 0; i < docFileLs.length; i ++) {
 
                     metadata.allApplicationsDocLs.push({
                         lsTables : lsTablesTmp,
-                        documentLink : `[LINK ${metadata.dashed(metadata.compact(appName + "." + moduleName + ".doc_" + xmlContent.documents[i].localize.replaceAll(" ","_")))} ${xmlContentSection.master.namespace}]`
+                        documentLink : `[LINK document-${metadata.dashed(xmlContent.documents[i].namespace)} ${xmlContentSection.master.namespace}]`
                     })
                 }
             }
