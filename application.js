@@ -42,7 +42,7 @@ module.exports = function createApplicationHelp(app, workingPath, outputPath) {
 
 //=============================================================================
 function createHelpFile(appOutputPath, app) {
-    var content = `[H1]${app.localize}\nHere the **${app.localize}** modules:\n\n`;
+    var content = `[H2${app.localize}\nHere the **${app.localize}** modules:\n\n`;
 
     var gridContent = [["**Module name / folder**", 
                         "**Description**"]];
