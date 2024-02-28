@@ -31,16 +31,10 @@ module.exports = function createModuleHelp(module, workingPath, outputPath) {
 function createHelpFile(outputPath, module, workingPath) {
     var content = `[H2 ${module.appName}-${module.name}]${module.localize}\n`
 
-    /*content += `Click here for the documents : [LINK  ${module.appName}-${module.name}-Documents DOCUMENTS]\n\n`
-    content += `Click here for the enumerations : [LINK  ${module.appName}-${module.name}-Enumerations ENUMERATIONS]\n\n`
-    content += `Click here for the tables : [LINK  ${module.appName}-${module.name}-Tables TABLES]\n\n`
-    content += `Click here for the web methods : [LINK  ${module.appName}-${module.name}-WebMethods WEBMETHODS]\n\n`*/
-
     var lsDocs = [];
     var lsEnum = [];
     var lsTables = [];
     var lsMethods = [];
-
 
     content += `\n[H3 NOINDEX #${module.appName}-${module.name}-Documents]Documents`
 
@@ -58,8 +52,6 @@ function createHelpFile(outputPath, module, workingPath) {
                 }
             }
         
-            //var lsDocs = [];
-
             for(let i = 0;i < xmlContent.documents.length; i ++ ) {
 
                 if(xmlContent.documents[i] == undefined)
@@ -162,10 +154,6 @@ function createHelpFile(outputPath, module, workingPath) {
                                         );
                 });
                 content += markdown.gridRender(gridContent,{ forceTableNewLines : true });
-    
-                /*lsDocs.forEach(element => {
-                    content += createDocDescription(element);
-                });*/
             } else {
                 content += "\n_/There aren't documents for this module yet!/_\n"
             }
@@ -189,9 +177,7 @@ function createHelpFile(outputPath, module, workingPath) {
                 xmlContent = { tag : [] };
                 xmlContent.tag.push(tmpContent)
             }
-        
-            //var lsEnum = [];
-        
+                
             for(let i = 0;i < xmlContent.tag.length; i ++ ) {
                 var contentString = "";
 
@@ -218,10 +204,6 @@ function createHelpFile(outputPath, module, workingPath) {
                                     );
             });
             content += markdown.gridRender(gridContent,{ forceTableNewLines : true });
-
-            /*lsEnum.forEach(element => {
-                content += createEnumDescription(element);
-            });*/
          }
          else {
             content += "\n_/There aren't enumerations for this module yet!/_\n"
@@ -255,29 +237,6 @@ function createHelpFile(outputPath, module, workingPath) {
     } else {
         content += "\n_/There aren't tables for this module yet!/_\n"
     }
-
-    /*lsTables.forEach(table => {
-        var lsFieldsXReferences = [];
-        var fileNameRef = path.join(workingPath,module.name,"ModuleObjects","DBInfo",metadata.objectName(table.namespace) + '.xml')
-
-        if(fs.existsSync(fileNameRef))
-        {
-            var xmlTableRef = metadata.parseXML(fileNameRef);
-            if(xmlTableRef != undefined) {
-
-                if(!!xmlTableRef.fields && !!xmlTableRef.fields.column && 
-                   !!xmlTableRef.fields && !!xmlTableRef.fields.column)
-                {
-                    for(let i = 0; i < xmlTableRef.fields.column.length; i ++) {
-                        if(xmlTableRef.fields.column[i].Reference != '')
-                          lsFieldsXReferences.push({ name : xmlTableRef.fields.column[i].Name, reference : xmlTableRef.fields.column[i].Reference})
-                    }
-                }
-            }
-        }
-
-        content += createTableDescription(table,lsFieldsXReferences);
-    });*/
 
     content += `\n[H3 NOINDEX #${module.appName}-${module.name}-WebMethods]WebMethods`
 
@@ -339,10 +298,6 @@ function createHelpFile(outputPath, module, workingPath) {
                                                     );
                         });
                         content += markdown.gridRender(gridContent,{ forceTableNewLines : true });
-                        
-                        /*lsMethods.forEach(element => {
-                          content += createWebMethodDescription(element);
-                        })*/
                     } else {
                         content += "\n_/There aren't webMethods for this module yet!/_\n"
                     } 
