@@ -29,14 +29,14 @@ module.exports = function createModuleHelp(module, workingPath, outputPath) {
 
 //=============================================================================
 function createHelpFile(outputPath, module, workingPath) {
-    var content = `[H3 ${module.appName}-${module.name}]${module.localize}\n`
+    var content = `[H2 ${module.appName}-${module.name}]${module.localize}\n`
 
     content += `Click here for the documents : [LINK refGuide-${module.appName}-${module.name}-Documents DOCUMENTS]\n\n`
     content += `Click here for the enumerations : [LINK refGuide-${module.appName}-${module.name}-Enumerations ENUMERATIONS]\n\n`
     content += `Click here for the tables : [LINK refGuide-${module.appName}-${module.name}-Tables TABLES]\n\n`
     content += `Click here for the web methods : [LINK refGuide-${module.appName}-${module.name}-WebMethods WEBMETHODS]\n\n`
 
-    content += `\n[H4 RefGuide-${module.appName}-${module.name}-Documents]Documents`
+    content += `\n[H3 RefGuide-${module.appName}-${module.name}-Documents]Documents`
 
     if (fs.existsSync(path.join('ModuleObjects', 'DocumentObjects.xml'))) {
         var xmlContent = metadata.parseXML(path.join('ModuleObjects', 'DocumentObjects.xml'));
@@ -170,7 +170,7 @@ function createHelpFile(outputPath, module, workingPath) {
         content += "\n_/There aren't documents for this module yet!/_"
     }
 
-    content += `\n[H4 RefGuide-${module.appName}-${module.name}-Enumerations]Enumerations`
+    content += `\n[H3 RefGuide-${module.appName}-${module.name}-Enumerations]Enumerations`
     
     if (fs.existsSync(path.join('ModuleObjects', 'Enums.xml'))) {
         var xmlContent = metadata.parseXML(path.join('ModuleObjects', 'Enums.xml'));
@@ -224,7 +224,7 @@ function createHelpFile(outputPath, module, workingPath) {
         content += "\n_/There aren't enumerations for this module yet!/_"
     }
 
-    content += `\n[H4 RefGuide-${module.appName}-${module.name}-Tables]Tables`
+    content += `\n[H3 RefGuide-${module.appName}-${module.name}-Tables]Tables`
 
     content += `\nHere the **${module.localize}** tables:\n\n`;
 
@@ -263,7 +263,7 @@ function createHelpFile(outputPath, module, workingPath) {
         content += createTableDescription(table,lsFieldsXReferences);
     });
 
-    content += `\n[H4 RefGuide-${module.appName}-${module.name}-WebMethods]WebMethods`
+    content += `\n[H3 RefGuide-${module.appName}-${module.name}-WebMethods]WebMethods`
 
     if (fs.existsSync(path.join('ModuleObjects', 'WebMethods.xml'))) {
 
@@ -350,9 +350,9 @@ function createHelpFile(outputPath, module, workingPath) {
 
 //=============================================================================
 function createWebMethodDescription(method) {
-    var content = `[H5 webMethod-${metadata.dashed(method.namespace)}]${metadata.objectName(method.namespace)}\n`;
+    var content = `[H4 webMethod-${metadata.dashed(method.namespace)}]${metadata.objectName(method.namespace)}\n`;
 
-    content += "[H6] Main Info\n";
+    content += "[H5] Main Info\n";
 
     var gridContent = [
         ["**Namespace**", metadata.objectName(method.namespace)],
@@ -365,15 +365,15 @@ function createWebMethodDescription(method) {
 
     var splittedDescriptionAndReturnValue = method.descriptionAndReturnValue.split('\r\n')
 
-    content += "[H6] Description\n";
+    content += "[H5] Description\n";
     content += splittedDescriptionAndReturnValue[0] + '\n'
 
     if(splittedDescriptionAndReturnValue[1] != undefined) {
-        content += "[H6] Return value\n";
+        content += "[H5] Return value\n";
         content += splittedDescriptionAndReturnValue[1].replaceAll('Return value: Is', 'The return value is') + '\n'
     }
 
-    content += "[H6] Parameters\n";
+    content += "[H5] Parameters\n";
     if (method.paramLs.length > 0) {
         gridContent = [["**Name**", 
                         "**Type**", 
@@ -395,9 +395,9 @@ function createWebMethodDescription(method) {
 
 //=============================================================================
 function createTableDescription(table,lsReferecences) {
-    var content = `[H5 table-${metadata.dashed(table.namespace)}]${metadata.objectName(table.namespace)}\n`;
+    var content = `[H4 table-${metadata.dashed(table.namespace)}]${metadata.objectName(table.namespace)}\n`;
 
-    content += "[H6] Base Info\n";
+    content += "[H5] Base Info\n";
 
     var gridContent = [
         ["**Phisical Name**",           metadata.objectName(table.namespace)],
@@ -411,7 +411,7 @@ function createTableDescription(table,lsReferecences) {
     }
     content += markdown.gridRender(gridContent, { allLines: true });
 
-    content += "[H6] Overview\n";
+    content += "[H5] Overview\n";
 
     if (!metadata.defined(table.documentationinfo)) {
         table.documentationinfo = { content : "", mandatory : false, readonly : false };
@@ -426,7 +426,7 @@ function createTableDescription(table,lsReferecences) {
 
     content += `${markdown.adjust(table.documentationinfo.content)}\n`;
 
-    content += "[H6] Fields\n";
+    content += "[H5] Fields\n";
     if (metadata.isArray(table.columns)) {
         gridContent = [["**Name**", 
                         "**Type & Len**", 
@@ -494,13 +494,13 @@ function createTableDescription(table,lsReferecences) {
 
 //=============================================================================
 function createEnumDescription(enumeration) {
-    var content = `[H5 enum-${metadata.dashed(enumeration.nameSpace)}]${enumeration.name}\n`;
+    var content = `[H4 enum-${metadata.dashed(enumeration.nameSpace)}]${enumeration.name}\n`;
 
-    content += "[H6] Base Info\n";
+    content += "[H5] Base Info\n";
 
     content += enumeration.description + '\n'
 
-    content += "[H6] Overview\n";
+    content += "[H5] Overview\n";
 
     gridContent = [["**Default**", 
                     "**Element**", 
@@ -535,9 +535,9 @@ function createEnumDescription(enumeration) {
 
 //=============================================================================
 function createDocDescription(doc) {
-    var content = `[H5 document-${metadata.dashed(doc.realNameSpace)}]${doc.name}\n`;
+    var content = `[H4 document-${metadata.dashed(doc.realNameSpace)}]${doc.name}\n`;
 
-    content += "[H6] Base Info\n";
+    content += "[H5] Base Info\n";
 
     var gridInfo = []
     gridInfo.push(["**NameSpace**",doc.realNameSpace])
@@ -547,11 +547,11 @@ function createDocDescription(doc) {
 
     content += markdown.gridRender(gridInfo, { allLines: true });
 
-    content += "[H6] Description\n"
+    content += "[H5] Description\n"
 
     content += doc.description + '\n'
 
-    content += "[H6] Sections\n";
+    content += "[H5] Sections\n";
 
     gridContent = [["**Type**", 
                     "**Section**", 
