@@ -31,12 +31,18 @@ module.exports = function createModuleHelp(module, workingPath, outputPath) {
 function createHelpFile(outputPath, module, workingPath) {
     var content = `[H2 ${module.appName}-${module.name}]${module.localize}\n`
 
-    content += `Click here for the documents : [LINK refGuide-${module.appName}-${module.name}-Documents DOCUMENTS]\n\n`
-    content += `Click here for the enumerations : [LINK refGuide-${module.appName}-${module.name}-Enumerations ENUMERATIONS]\n\n`
-    content += `Click here for the tables : [LINK refGuide-${module.appName}-${module.name}-Tables TABLES]\n\n`
-    content += `Click here for the web methods : [LINK refGuide-${module.appName}-${module.name}-WebMethods WEBMETHODS]\n\n`
+    /*content += `Click here for the documents : [LINK  ${module.appName}-${module.name}-Documents DOCUMENTS]\n\n`
+    content += `Click here for the enumerations : [LINK  ${module.appName}-${module.name}-Enumerations ENUMERATIONS]\n\n`
+    content += `Click here for the tables : [LINK  ${module.appName}-${module.name}-Tables TABLES]\n\n`
+    content += `Click here for the web methods : [LINK  ${module.appName}-${module.name}-WebMethods WEBMETHODS]\n\n`*/
 
-    content += `\n[H3 RefGuide-${module.appName}-${module.name}-Documents]Documents`
+    var lsDocs = [];
+    var lsEnum = [];
+    var lsTables = [];
+    var lsMethods = [];
+
+
+    content += `\n[H3 NOINDEX #${module.appName}-${module.name}-Documents]Documents`
 
     if (fs.existsSync(path.join('ModuleObjects', 'DocumentObjects.xml'))) {
         var xmlContent = metadata.parseXML(path.join('ModuleObjects', 'DocumentObjects.xml'));
@@ -52,7 +58,7 @@ function createHelpFile(outputPath, module, workingPath) {
                 }
             }
         
-            var lsDocs = [];
+            //var lsDocs = [];
 
             for(let i = 0;i < xmlContent.documents.length; i ++ ) {
 
@@ -157,20 +163,20 @@ function createHelpFile(outputPath, module, workingPath) {
                 });
                 content += markdown.gridRender(gridContent,{ forceTableNewLines : true });
     
-                lsDocs.forEach(element => {
+                /*lsDocs.forEach(element => {
                     content += createDocDescription(element);
-                });
+                });*/
             } else {
-                content += "\n_/There aren't documents for this module yet!/_"
+                content += "\n_/There aren't documents for this module yet!/_\n"
             }
         } else {
-            content += "\n_/There aren't documents for this module yet!/_"
+            content += "\n_/There aren't documents for this module yet!/_\n"
         }
     } else {
-        content += "\n_/There aren't documents for this module yet!/_"
+        content += "\n_/There aren't documents for this module yet!/_\n"
     }
 
-    content += `\n[H3 RefGuide-${module.appName}-${module.name}-Enumerations]Enumerations`
+    content += `\n[H3 NOINDEX #${module.appName}-${module.name}-Enumerations]Enumerations`
     
     if (fs.existsSync(path.join('ModuleObjects', 'Enums.xml'))) {
         var xmlContent = metadata.parseXML(path.join('ModuleObjects', 'Enums.xml'));
@@ -184,7 +190,7 @@ function createHelpFile(outputPath, module, workingPath) {
                 xmlContent.tag.push(tmpContent)
             }
         
-            var lsEnum = [];
+            //var lsEnum = [];
         
             for(let i = 0;i < xmlContent.tag.length; i ++ ) {
                 var contentString = "";
@@ -213,34 +219,44 @@ function createHelpFile(outputPath, module, workingPath) {
             });
             content += markdown.gridRender(gridContent,{ forceTableNewLines : true });
 
-            lsEnum.forEach(element => {
+            /*lsEnum.forEach(element => {
                 content += createEnumDescription(element);
-            });
+            });*/
          }
          else {
-            content += "\n_/There aren't enumerations for this module yet!/_"
+            content += "\n_/There aren't enumerations for this module yet!/_\n"
          }
     } else {
-        content += "\n_/There aren't enumerations for this module yet!/_"
+        content += "\n_/There aren't enumerations for this module yet!/_\n"
     }
 
-    content += `\n[H3 RefGuide-${module.appName}-${module.name}-Tables]Tables`
+    content += `\n[H3 NOINDEX #${module.appName}-${module.name}-Tables]Tables`
 
     content += `\nHere the **${module.localize}** tables:\n\n`;
 
     var gridContent = [["**Table name**", 
                         "**Description**"]];
 
-    module.dbObjects.tables.table.forEach(table => {
-        if (!metadata.defined(table.localize)) table.localize = "";
-            gridContent.push(
-                                [`[LINK table-${metadata.dashed(table.namespace)} ${metadata.objectName(table.namespace)}]`, 
-                                markdown.adjust(table.localize)]
-                            );
-    });
-    content += markdown.gridRender(gridContent,{ forceTableNewLines : true });
+    lsTables = JSON.parse(JSON.stringify(module.dbObjects.tables.table));
 
-    module.dbObjects.tables.table.forEach(table => {
+    
+
+    if(lsTables.length != 0){
+
+        lsTables.forEach(table => {
+            if (!metadata.defined(table.localize)) table.localize = "";
+                gridContent.push(
+                                    [`[LINK table-${metadata.dashed(table.namespace)} ${metadata.objectName(table.namespace)}]`, 
+                                    markdown.adjust(table.localize)]
+                                );
+        });
+        content += markdown.gridRender(gridContent,{ forceTableNewLines : true });
+
+    } else {
+        content += "\n_/There aren't tables for this module yet!/_\n"
+    }
+
+    /*lsTables.forEach(table => {
         var lsFieldsXReferences = [];
         var fileNameRef = path.join(workingPath,module.name,"ModuleObjects","DBInfo",metadata.objectName(table.namespace) + '.xml')
 
@@ -261,9 +277,9 @@ function createHelpFile(outputPath, module, workingPath) {
         }
 
         content += createTableDescription(table,lsFieldsXReferences);
-    });
+    });*/
 
-    content += `\n[H3 RefGuide-${module.appName}-${module.name}-WebMethods]WebMethods`
+    content += `\n[H3 NOINDEX #${module.appName}-${module.name}-WebMethods]WebMethods`
 
     if (fs.existsSync(path.join('ModuleObjects', 'WebMethods.xml'))) {
 
@@ -319,27 +335,62 @@ function createHelpFile(outputPath, module, workingPath) {
                     
                         lsMethods.forEach(element => {
                                     gridContent.push(
-                                                        [`[LINK ${metadata.dashed(element.namespace)} ${element.name}]`]
+                                                        [`[LINK webMethod-${metadata.dashed(element.namespace)} ${element.name}]`]
                                                     );
                         });
                         content += markdown.gridRender(gridContent,{ forceTableNewLines : true });
                         
-                        lsMethods.forEach(element => {
+                        /*lsMethods.forEach(element => {
                           content += createWebMethodDescription(element);
-                        })
+                        })*/
                     } else {
-                        content += "\n_/There aren't webMethods for this module yet!/_"
+                        content += "\n_/There aren't webMethods for this module yet!/_\n"
                     } 
 
             } else {
-                content += "\n_/There aren't webMethods for this module yet!/_"
+                content += "\n_/There aren't webMethods for this module yet!/_\n"
             }
         } else {
-            content += "\n_/There aren't webMethods for this module yet!/_"
+            content += "\n_/There aren't webMethods for this module yet!/_\n"
         }
     } else {
-        content += "\n_/There aren't webmethods for this module yet!/_"
+        content += "\n_/There aren't webmethods for this module yet!/_\n"
     }
+    
+    lsDocs.forEach(element => {
+        content += createDocDescription(element);
+    });
+
+    lsEnum.forEach(element => {
+        content += createEnumDescription(element);
+    });
+
+    lsTables.forEach(table => {
+        var lsFieldsXReferences = [];
+        var fileNameRef = path.join(workingPath,module.name,"ModuleObjects","DBInfo",metadata.objectName(table.namespace) + '.xml')
+
+        if(fs.existsSync(fileNameRef))
+        {
+            var xmlTableRef = metadata.parseXML(fileNameRef);
+            if(xmlTableRef != undefined) {
+
+                if(!!xmlTableRef.fields && !!xmlTableRef.fields.column && 
+                   !!xmlTableRef.fields && !!xmlTableRef.fields.column)
+                {
+                    for(let i = 0; i < xmlTableRef.fields.column.length; i ++) {
+                        if(xmlTableRef.fields.column[i].Reference != '')
+                          lsFieldsXReferences.push({ name : xmlTableRef.fields.column[i].Name, reference : xmlTableRef.fields.column[i].Reference})
+                    }
+                }
+            }
+        }
+
+        content += createTableDescription(table,lsFieldsXReferences);
+    });
+
+    lsMethods.forEach(element => {
+        content += createWebMethodDescription(element);
+    })
 
     try {
         fs.writeFileSync(path.join(outputPath + '\\Modules', `${module.name}_tables.sam`), content);
@@ -350,9 +401,9 @@ function createHelpFile(outputPath, module, workingPath) {
 
 //=============================================================================
 function createWebMethodDescription(method) {
-    var content = `[H4 webMethod-${metadata.dashed(method.namespace)}]${metadata.objectName(method.namespace)}\n`;
+    var content = `[H4 NOINDEX webMethod-${metadata.dashed(method.namespace)}]${metadata.objectName(method.namespace)}\n`;
 
-    content += "[H5] Main Info\n";
+    content += "[H5 NOINDEX] Base Info\n";
 
     var gridContent = [
         ["**Namespace**", metadata.objectName(method.namespace)],
@@ -365,15 +416,15 @@ function createWebMethodDescription(method) {
 
     var splittedDescriptionAndReturnValue = method.descriptionAndReturnValue.split('\r\n')
 
-    content += "[H5] Description\n";
+    content += "[H5 NOINDEX] Description\n";
     content += splittedDescriptionAndReturnValue[0] + '\n'
 
     if(splittedDescriptionAndReturnValue[1] != undefined) {
-        content += "[H5] Return value\n";
+        content += "[H5 NOINDEX] Return value\n";
         content += splittedDescriptionAndReturnValue[1].replaceAll('Return value: Is', 'The return value is') + '\n'
     }
 
-    content += "[H5] Parameters\n";
+    content += "[H5 NOINDEX] Parameters\n";
     if (method.paramLs.length > 0) {
         gridContent = [["**Name**", 
                         "**Type**", 
@@ -395,9 +446,9 @@ function createWebMethodDescription(method) {
 
 //=============================================================================
 function createTableDescription(table,lsReferecences) {
-    var content = `[H4 table-${metadata.dashed(table.namespace)}]${metadata.objectName(table.namespace)}\n`;
+    var content = `[H4 NOINDEX table-${metadata.dashed(table.namespace)}]${metadata.objectName(table.namespace)}\n`;
 
-    content += "[H5] Base Info\n";
+    content += "[H5 NOINDEX] Base Info\n";
 
     var gridContent = [
         ["**Phisical Name**",           metadata.objectName(table.namespace)],
@@ -411,7 +462,7 @@ function createTableDescription(table,lsReferecences) {
     }
     content += markdown.gridRender(gridContent, { allLines: true });
 
-    content += "[H5] Overview\n";
+    content += "[H5 NOINDEX] Overview\n";
 
     if (!metadata.defined(table.documentationinfo)) {
         table.documentationinfo = { content : "", mandatory : false, readonly : false };
@@ -426,7 +477,7 @@ function createTableDescription(table,lsReferecences) {
 
     content += `${markdown.adjust(table.documentationinfo.content)}\n`;
 
-    content += "[H5] Fields\n";
+    content += "[H5 NOINDEX] Fields\n";
     if (metadata.isArray(table.columns)) {
         gridContent = [["**Name**", 
                         "**Type & Len**", 
@@ -494,13 +545,13 @@ function createTableDescription(table,lsReferecences) {
 
 //=============================================================================
 function createEnumDescription(enumeration) {
-    var content = `[H4 enum-${metadata.dashed(enumeration.nameSpace)}]${enumeration.name}\n`;
+    var content = `[H4 NOINDEX enum-${metadata.dashed(enumeration.nameSpace)}]${enumeration.name}\n`;
 
-    content += "[H5] Base Info\n";
+    content += "[H5 NOINDEX] Base Info\n";
 
     content += enumeration.description + '\n'
 
-    content += "[H5] Overview\n";
+    content += "[H5 NOINDEX] Overview\n";
 
     gridContent = [["**Default**", 
                     "**Element**", 
@@ -535,9 +586,9 @@ function createEnumDescription(enumeration) {
 
 //=============================================================================
 function createDocDescription(doc) {
-    var content = `[H4 document-${metadata.dashed(doc.realNameSpace)}]${doc.name}\n`;
+    var content = `[H4 NOINDEX document-${metadata.dashed(doc.realNameSpace)}]${doc.name}\n`;
 
-    content += "[H5] Base Info\n";
+    content += "[H5 NOINDEX] Base Info\n";
 
     var gridInfo = []
     gridInfo.push(["**NameSpace**",doc.realNameSpace])
@@ -547,11 +598,11 @@ function createDocDescription(doc) {
 
     content += markdown.gridRender(gridInfo, { allLines: true });
 
-    content += "[H5] Description\n"
+    content += "[H5 NOINDEX] Description\n"
 
     content += doc.description + '\n'
 
-    content += "[H5] Sections\n";
+    content += "[H5 NOINDEX] Sections\n";
 
     gridContent = [["**Type**", 
                     "**Section**", 

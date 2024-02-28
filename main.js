@@ -174,7 +174,7 @@ appNames.forEach(appName => {
     }
 });
 
-copyAsset('Applications.sam', assets, outputPath, function(content) {
+copyAsset('BusinessObjects.sam', assets, outputPath, function(content) {
     apps.forEach(app => {
         content += `[INCLUDE ${app.name}/${app.name}_modules.sam]\n` 
     });

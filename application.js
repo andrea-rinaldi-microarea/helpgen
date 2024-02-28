@@ -47,7 +47,9 @@ function createHelpFile(appOutputPath, app) {
     var gridContent = [["**Module name / folder**", 
                         "**Description**"]];
     app.modules.forEach(module => {
-        gridContent.push([`[LINK ${app.name}-${module.name} ${module.name}]`, markdown.adjust(module.localize)]);
+        //gridContent.push([`[LINK ${app.name}-${module.name} ${module.name}]`, markdown.adjust(module.localize)]);
+        gridContent.push([`[LINK ${module.appName}-${module.name} ${module.name}]`, markdown.adjust(module.localize)]);
+        
     });
     content += markdown.gridRender(gridContent, { forceTableNewLines : true });
 
