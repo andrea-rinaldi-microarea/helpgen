@@ -146,11 +146,11 @@ function createHelpFile(outputPath, module, workingPath) {
             if(lsDocs.length > 0) {
                 content += `\nHere the **${module.localize}** documents:\n\n`;
 
-                var gridContent = [["**Document name**"]]
+                var gridContent = [["**Document name**","**Description**"]]
                 
                 lsDocs.forEach(element => {
                         gridContent.push(
-                                            [`[LINK document-${metadata.dashed(element.realNameSpace)} ${element.name}]`]
+                                            [`[LINK document-${metadata.dashed(element.realNameSpace)} ${element.name}]`,element.description]
                                         );
                 });
                 content += markdown.gridRender(gridContent,{ forceTableNewLines : true });
