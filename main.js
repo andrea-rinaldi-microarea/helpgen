@@ -119,6 +119,10 @@ for(let i = 0; i < docFileLs.length; i ++) {
 
                 if (fs.existsSync(pathOfFile)) {
                     var xmlContentSection = metadata.parseXML(pathOfFile);
+
+                    if(xmlContentSection.master == undefined || xmlContentSection.master.table == undefined || xmlContentSection.master.table.namespace == undefined) 
+                       continue; 
+
                     var splittedTableNamespace = xmlContentSection.master.table.namespace.split(".")
                     xmlContentSection.master.table.namespace = splittedTableNamespace.join('.');
 

@@ -441,7 +441,7 @@ function createTableDescription(table,lsReferecences) {
                         "**D**", 
                         "**Description**"]];
         
-        if(table.foreignkeys != undefined)
+        if(table.foreignkeys != undefined && table.foreignkeys.foreignkey != undefined && table.foreignkeys.foreignkey.fksegments != undefined)
         {
            var segmentList = table.foreignkeys.foreignkey.fksegments.split(',');
            for (var i = 0; i < segmentList.length; i++)
