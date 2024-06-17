@@ -36,7 +36,7 @@ function createHelpFile(outputPath, module, workingPath) {
     var lsTables = [];
     var lsMethods = [];
 
-    content += `\n[H4 NOINDEX #${module.appName}-${module.name}-Documents]Documents`
+    content += `\n[# fake_h4]Documents\n\n`
 
     if (fs.existsSync(path.join('ModuleObjects', 'DocumentObjects.xml'))) {
         var xmlContent = metadata.parseXML(path.join('ModuleObjects', 'DocumentObjects.xml'));
@@ -155,16 +155,16 @@ function createHelpFile(outputPath, module, workingPath) {
                 });
                 content += markdown.gridRender(gridContent,{ forceTableNewLines : true });
             } else {
-                content += "\n_/There aren't documents for this module yet!/_\n"
+                content += "\n_/There aren't documents for this module yet!/_\n\n"
             }
         } else {
-            content += "\n_/There aren't documents for this module yet!/_\n"
+            content += "\n_/There aren't documents for this module yet!/_\n\n"
         }
     } else {
-        content += "\n_/There aren't documents for this module yet!/_\n"
+        content += "\n_/There aren't documents for this module yet!/_\n\n"
     }
 
-    content += `\n[H4 NOINDEX #${module.appName}-${module.name}-Enumerations]Enumerations`
+    content += `\n[# fake_h4]Enumerations\n\n`
     
     if (fs.existsSync(path.join('ModuleObjects', 'Enums.xml'))) {
         var xmlContent = metadata.parseXML(path.join('ModuleObjects', 'Enums.xml'));
@@ -206,13 +206,13 @@ function createHelpFile(outputPath, module, workingPath) {
             content += markdown.gridRender(gridContent,{ forceTableNewLines : true });
          }
          else {
-            content += "\n_/There aren't enumerations for this module yet!/_\n"
+            content += "\n_/There aren't enumerations for this module yet!/_\n\n"
          }
     } else {
-        content += "\n_/There aren't enumerations for this module yet!/_\n"
+        content += "\n_/There aren't enumerations for this module yet!/_\n\n"
     }
 
-    content += `\n[H4 NOINDEX #${module.appName}-${module.name}-Tables]Tables`
+    content += `\n[# fake_h4]Tables\n\n`
 
     content += `\nHere the **${module.localize}** tables:\n\n`;
 
@@ -235,10 +235,10 @@ function createHelpFile(outputPath, module, workingPath) {
         content += markdown.gridRender(gridContent,{ forceTableNewLines : true });
 
     } else {
-        content += "\n_/There aren't tables for this module yet!/_\n"
+        content += "\n_/There aren't tables for this module yet!/_\n\n"
     }
 
-    content += `\n[H4 NOINDEX #${module.appName}-${module.name}-WebMethods]WebMethods`
+    content += `\n[# fake_h4]WebMethods\n\n`
 
     if (fs.existsSync(path.join('ModuleObjects', 'WebMethods.xml'))) {
 
@@ -299,17 +299,17 @@ function createHelpFile(outputPath, module, workingPath) {
                         });
                         content += markdown.gridRender(gridContent,{ forceTableNewLines : true });
                     } else {
-                        content += "\n_/There aren't webMethods for this module yet!/_\n"
+                        content += "\n_/There aren't webMethods for this module yet!/_\n\n"
                     } 
 
             } else {
-                content += "\n_/There aren't webMethods for this module yet!/_\n"
+                content += "\n_/There aren't webMethods for this module yet!/_\n\n"
             }
         } else {
-            content += "\n_/There aren't webMethods for this module yet!/_\n"
+            content += "\n_/There aren't webMethods for this module yet!/_\n\n"
         }
     } else {
-        content += "\n_/There aren't webmethods for this module yet!/_\n"
+        content += "\n_/There aren't webmethods for this module yet!/_\n\n"
     }
     
     lsDocs.forEach(element => {
@@ -356,9 +356,9 @@ function createHelpFile(outputPath, module, workingPath) {
 
 //=============================================================================
 function createWebMethodDescription(method) {
-    var content = `[H5 NOINDEX webMethod-${metadata.dashed(method.namespace)}]${metadata.objectName(method.namespace)}\n`;
+    var content = `[h4 NOINDEX NEWPAGE webMethod-${metadata.dashed(method.namespace)}]${metadata.objectName(method.namespace)}\n`;
 
-    content += "[H6 NOINDEX] Base Info\n";
+    content += "[# fake_h6] Base Info\n\n";
 
     var gridContent = [
         ["**Namespace**", metadata.objectName(method.namespace)],
@@ -371,15 +371,15 @@ function createWebMethodDescription(method) {
 
     var splittedDescriptionAndReturnValue = method.descriptionAndReturnValue.split('\r\n')
 
-    content += "[H6 NOINDEX] Description\n";
+    content += "[# fake_h6] Description\n\n";
     content += splittedDescriptionAndReturnValue[0] + '\n'
 
     if(splittedDescriptionAndReturnValue[1] != undefined) {
-        content += "[H6 NOINDEX] Return value\n";
+        content += "[# fake_h6] Return value\n\n";
         content += splittedDescriptionAndReturnValue[1].replaceAll('Return value: Is', 'The return value is') + '\n'
     }
 
-    content += "[H6 NOINDEX] Parameters\n";
+    content += "[# fake_h6] Parameters\n\n";
     if (method.paramLs.length > 0) {
         gridContent = [["**Name**", 
                         "**Type**", 
@@ -401,9 +401,9 @@ function createWebMethodDescription(method) {
 
 //=============================================================================
 function createTableDescription(table,lsReferecences) {
-    var content = `[H5 NOINDEX table-${metadata.dashed(table.namespace)}]${metadata.objectName(table.namespace)}\n`;
+    var content = `[h4 NOINDEX NEWPAGE table-${metadata.dashed(table.namespace)}]${metadata.objectName(table.namespace)}\n`;
 
-    content += "[H6 NOINDEX] Base Info\n";
+    content += "[# fake_h6] Base Info\n\n";
 
     var gridContent = [
         ["**Phisical Name**",           metadata.objectName(table.namespace)],
@@ -417,7 +417,7 @@ function createTableDescription(table,lsReferecences) {
     }
     content += markdown.gridRender(gridContent, { allLines: true });
 
-    content += "[H6 NOINDEX] Overview\n";
+    content += "[# fake_h6] Overview\n\n";
 
     if (!metadata.defined(table.documentationinfo)) {
         table.documentationinfo = { content : "", mandatory : false, readonly : false };
@@ -432,7 +432,7 @@ function createTableDescription(table,lsReferecences) {
 
     content += `${markdown.adjust(table.documentationinfo.content)}\n`;
 
-    content += "[H6 NOINDEX] Fields\n";
+    content += "[# fake_h6] Fields\n\n";
     if (metadata.isArray(table.columns)) {
         gridContent = [["**Name**", 
                         "**Type & Len**", 
@@ -500,13 +500,13 @@ function createTableDescription(table,lsReferecences) {
 
 //=============================================================================
 function createEnumDescription(enumeration) {
-    var content = `[H5 NOINDEX enum-${metadata.dashed(enumeration.nameSpace)}]${enumeration.name}\n`;
+    var content = `[h4 NOINDEX NEWPAGE enum-${metadata.dashed(enumeration.nameSpace)}]${enumeration.name}\n`;
 
-    content += "[H6 NOINDEX] Base Info\n";
+    content += "[# fake_h6] Base Info\n\n";
 
     content += enumeration.description + '\n'
 
-    content += "[H6 NOINDEX] Overview\n";
+    content += "[# fake_h6] Overview\n\n";
 
     gridContent = [["**Default**", 
                     "**Element**", 
@@ -541,9 +541,9 @@ function createEnumDescription(enumeration) {
 
 //=============================================================================
 function createDocDescription(doc) {
-    var content = `[H5 NOINDEX document-${metadata.dashed(doc.realNameSpace)}]${doc.name}\n`;
+    var content = `[h4 NOINDEX NEWPAGE document-${metadata.dashed(doc.realNameSpace)}]${doc.name}\n`;
 
-    content += "[H6 NOINDEX] Base Info\n";
+    content += "[# fake_h6] Base Info\n\n";
 
     var gridInfo = []
     gridInfo.push(["**NameSpace**",doc.realNameSpace])
@@ -553,11 +553,11 @@ function createDocDescription(doc) {
 
     content += markdown.gridRender(gridInfo, { allLines: true });
 
-    content += "[H6 NOINDEX] Description\n"
+    content += "[# fake_h6] Description\n\n"
 
     content += doc.description + '\n'
 
-    content += "[H6 NOINDEX] Sections\n";
+    content += "[# fake_h6] Sections\n\n";
 
     gridContent = [["**Type**", 
                     "**Section**", 
