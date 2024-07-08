@@ -29,7 +29,7 @@ module.exports = function createModuleHelp(module, workingPath, outputPath) {
 
 //=============================================================================
 function createHelpFile(outputPath, module, workingPath) {
-    var content = `[H3 ${module.appName}-${module.name}]${module.localize}\n`
+    var content = `[H4 ${module.appName}-${module.name}]${module.localize}\n`
 
     var lsDocs = [];
     var lsEnum = [];
@@ -356,7 +356,7 @@ function createHelpFile(outputPath, module, workingPath) {
 
 //=============================================================================
 function createWebMethodDescription(method) {
-    var content = `[h4 NOINDEX NEWPAGE webMethod-${metadata.dashed(method.namespace)}]${metadata.objectName(method.namespace)}\n`;
+    var content = `[h5 NOINDEX NEWPAGE webMethod-${metadata.dashed(method.namespace)}]${metadata.objectName(method.namespace)}\n`;
 
     content += "[# fake_h6] Base Info\n\n";
 
@@ -401,7 +401,7 @@ function createWebMethodDescription(method) {
 
 //=============================================================================
 function createTableDescription(table,lsReferecences) {
-    var content = `[h4 NOINDEX NEWPAGE table-${metadata.dashed(table.namespace)}]${metadata.objectName(table.namespace)}\n`;
+    var content = `[h5 NOINDEX NEWPAGE table-${metadata.dashed(table.namespace)}]${metadata.objectName(table.namespace)}\n`;
 
     content += "[# fake_h6] Base Info\n\n";
 
@@ -500,7 +500,7 @@ function createTableDescription(table,lsReferecences) {
 
 //=============================================================================
 function createEnumDescription(enumeration) {
-    var content = `[h4 NOINDEX NEWPAGE enum-${metadata.dashed(enumeration.nameSpace)}]${enumeration.name}\n`;
+    var content = `[h5 NOINDEX NEWPAGE enum-${metadata.dashed(enumeration.nameSpace)}]${enumeration.name}\n`;
 
     content += "[# fake_h6] Base Info\n\n";
 
@@ -541,7 +541,7 @@ function createEnumDescription(enumeration) {
 
 //=============================================================================
 function createDocDescription(doc) {
-    var content = `[h4 NOINDEX NEWPAGE document-${metadata.dashed(doc.realNameSpace)}]${doc.name}\n`;
+    var content = `[h5 NOINDEX NEWPAGE document-${metadata.dashed(doc.realNameSpace)}]${doc.name}\n`;
 
     content += "[# fake_h6] Base Info\n\n";
 
